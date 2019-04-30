@@ -88,4 +88,24 @@ class NarratorTest {
         assertThat("DirectObject should be in narrative context", narrativeContext.isKnownEntity(directObject), equalTo(true))
     }
 
+    @Test
+    fun writeSentence_reflexive() {
+        // GIVEN a Sentence whose Subject and Object are the same entity
+        val subjectObject = TestNamedEntity(Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+
+        val sentence = SimpleSentence(
+                subjectObject,
+                "hurt",
+                subjectObject
+        )
+
+        // WHEN writing the sentence
+        val string = narrator.writeSentence(sentence)
+
+        // EXPECT the Direct Object to be the reflexive pronoun
+        assertThat(string, equalTo("A girl hurt herself."))
+
+        assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subjectObject), equalTo(true))
+    }
+
 }

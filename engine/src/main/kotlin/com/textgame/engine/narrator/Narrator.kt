@@ -7,23 +7,32 @@ import com.textgame.engine.model.sentence.SimpleSentence
 import java.lang.StringBuilder
 
 class Narrator(
-        val narrativeContext: NarrativeContext
+        private val narrativeContext: NarrativeContext
 ) {
 
     fun writeSentence(sentence: SimpleSentence): String {
         val subjectName = referToByName(sentence.subject)
 
+        // Start with basic Subject/Verb
         val builder = StringBuilder()
                 .append(NounPhraseFormatter.format(subjectName, true))
                 .append(" ")
                 .append(sentence.verb)
 
+        // Include the Direct Object (if present)
         sentence.directObject?.let {
-            val objectName = referToByName(sentence.directObject)
+            // If the Subject and Object are the same, use the reflexive pronoun
+            val formattedObjectName =
+                    if (sentence.directObject === sentence.subject)
+                        sentence.directObject.getPronouns().reflexive
+                    else
+                        NounPhraseFormatter.format(referToByName(sentence.directObject), false)
 
             builder.append(" ")
-                    .append(NounPhraseFormatter.format(objectName, false))
+                    .append(formattedObjectName)
         }
+
+        // Apply punctuation at the end of the sentence
         builder.append(".")
 
         return builder.toString()
