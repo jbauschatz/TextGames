@@ -8,6 +8,9 @@ class NounPhraseFormatter {
         fun format(nounPhrase: NounPhrase, capitalize: Boolean): String =
                 when(nounPhrase) {
                     is ProperNoun -> format(nounPhrase.value, capitalize)
+                    is Noun -> format(nounPhrase.value, capitalize)
+                    is Definite -> format("the ", capitalize) + format(nounPhrase.stem, false)
+                    is Indefinite -> getArticle(nounPhrase, capitalize) + format(nounPhrase.stem, false)
                     else -> throw IllegalArgumentException("Invalid Noun Phrase type: ${nounPhrase.javaClass}")
                 }
 
@@ -17,5 +20,12 @@ class NounPhraseFormatter {
                 } else {
                     string
                 }
+
+        private fun getArticle(indefinite: Indefinite, capitalize: Boolean) =
+                format(
+                        if (indefinite.stem.startsWithVowelSound()) "an "
+                                else "a ",
+                        capitalize
+                )
     }
 }

@@ -1,6 +1,6 @@
 package com.textgame.engine.model.nounphrase
 
-class ProperNoun constructor(
+class Noun(
         val value: String,
         private val startsWithVowelSound: Boolean
 ): NounPhrase {
@@ -8,12 +8,11 @@ class ProperNoun constructor(
     constructor(value: String): this(value, "aeiouAEIOC".contains(value[0]))
 
     override fun definite(): NounPhrase =
-            this
+            Definite(this)
 
     override fun indefinite(): NounPhrase =
-            this
+            Indefinite(this)
 
     override fun startsWithVowelSound(): Boolean =
             startsWithVowelSound
-
 }

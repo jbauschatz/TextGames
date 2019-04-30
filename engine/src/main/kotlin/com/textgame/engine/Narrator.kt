@@ -7,14 +7,18 @@ import java.lang.StringBuilder
 class Narrator {
 
     fun writeSentence(sentence: SimpleSentence): String {
+        val subjectName = sentence.subject.getName().indefinite()
+
         val builder = StringBuilder()
-                .append(NounPhraseFormatter.format(sentence.subject.getName(), true))
+                .append(NounPhraseFormatter.format(subjectName, true))
                 .append(" ")
                 .append(sentence.verb)
 
         sentence.directObject?.let {
+            val objectName = sentence.directObject.getName().indefinite()
+
             builder.append(" ")
-                    .append(NounPhraseFormatter.format(sentence.directObject.getName(), false))
+                    .append(NounPhraseFormatter.format(objectName, false))
         }
         builder.append(".")
 
