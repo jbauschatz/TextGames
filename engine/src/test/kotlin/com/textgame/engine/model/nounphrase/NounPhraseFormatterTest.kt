@@ -24,7 +24,9 @@ class NounPhraseFormatterTest {
                 Arguments.of(Indefinite(Noun("egg")), true, "An egg"),
                 Arguments.of(Indefinite(Noun("egg")), false, "an egg"),
                 Arguments.of(Indefinite(Noun("honor", true)), true, "An honor"),
-                Arguments.of(Indefinite(Noun("honor", true)), false, "an honor")
+                Arguments.of(Indefinite(Noun("honor", true)), false, "an honor"),
+                Arguments.of(Pronoun("her"), true, "Her"),
+                Arguments.of(Pronoun("her"), false, "her")
         )
     }
 

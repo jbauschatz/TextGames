@@ -2,12 +2,7 @@ package com.textgame.engine.model.nounphrase
 
 import com.textgame.engine.WordUtil
 
-class ProperNoun constructor(
-        val value: String,
-        private val startsWithVowelSound: Boolean
-): NounPhrase {
-
-    constructor(value: String): this(value, WordUtil.startsWithVowel(value))
+class Pronoun(val value: String): NounPhrase {
 
     override fun definite(): NounPhrase =
             this
@@ -16,6 +11,5 @@ class ProperNoun constructor(
             this
 
     override fun startsWithVowelSound(): Boolean =
-            startsWithVowelSound
-
+        WordUtil.startsWithVowel(value)
 }

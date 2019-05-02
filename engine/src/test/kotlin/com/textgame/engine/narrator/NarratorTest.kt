@@ -1,11 +1,9 @@
-package com.textgame.engine
+package com.textgame.engine.narrator
 
-import com.textgame.engine.model.Pronouns
+import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.ProperNoun
 import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.narrator.NarrativeContext
-import com.textgame.engine.narrator.Narrator
 import com.textgame.engine.test.TestNamedEntity
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
@@ -106,6 +104,44 @@ class NarratorTest {
         assertThat(string, equalTo("A girl hurt herself."))
 
         assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subjectObject), equalTo(true))
+    }
+
+    @Test
+    fun writeSentence_pronounOverride() {
+        // GIVEN a Sentence whose Subject has an overridden pronoun
+        val subject = TestNamedEntity(Noun("boy"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        narrator.overridePronouns(subject, Pronouns.SECOND_PERSON_SINGULAR)
+
+        val sentence = SimpleSentence(
+                subject,
+                "draw",
+                TestNamedEntity(Noun("sword"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
+        )
+
+        // WHEN writing the sentence
+        val string = narrator.writeSentence(sentence)
+
+        // EXPECT the Subject to use the overridden pronouns
+        assertThat(string, equalTo("You draw a sword."))
+    }
+
+    @Test
+    fun writeSentence_reflexiveWithOverride() {
+        // GIVEN a Sentence whose Subject and Object are the same entity
+        val subjectObject = TestNamedEntity(Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        narrator.overridePronouns(subjectObject, Pronouns.SECOND_PERSON_SINGULAR)
+
+        val sentence = SimpleSentence(
+                subjectObject,
+                "hurt",
+                subjectObject
+        )
+
+        // WHEN writing the sentence
+        val string = narrator.writeSentence(sentence)
+
+        // EXPECT the Subject and Direct Object to use the specified pronouns, and the DO to be reflexive
+        assertThat(string, equalTo("You hurt yourself."))
     }
 
 }

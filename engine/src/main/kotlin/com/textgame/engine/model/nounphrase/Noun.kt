@@ -1,11 +1,13 @@
 package com.textgame.engine.model.nounphrase
 
+import com.textgame.engine.WordUtil
+
 class Noun(
         val value: String,
         private val startsWithVowelSound: Boolean
 ): NounPhrase {
 
-    constructor(value: String): this(value, "aeiouAEIOC".contains(value[0]))
+    constructor(value: String): this(value, WordUtil.startsWithVowel(value))
 
     override fun definite(): NounPhrase =
             Definite(this)

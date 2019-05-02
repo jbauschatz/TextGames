@@ -1,5 +1,4 @@
 rootProject.name = 'textgame'
-rootProject.name = 'textgame'
-rootProject.name = 'textgame'
 include 'engine'
+include 'dungeoncrawl'
 

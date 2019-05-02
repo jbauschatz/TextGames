@@ -1,4 +1,6 @@
-package com.textgame.engine.model
+package com.textgame.engine.model.nounphrase
+
+import com.textgame.engine.model.Case
 
 /**
  * Class to represent an entity's pronouns in different parts of speech.
@@ -11,13 +13,13 @@ data class Pronouns(
          * Form of the pronoun to be used in the Subject of a sentence.
          * Examples: "[he/she/it/they] threw the ball"
          */
-        val subjective: String,
+        val nominative: Pronoun,
 
         /**
          * Form of the pronoun to be used as the Direct Object of a sentence.
          * Examples: "[he/she/it/they] threw the ball"
          */
-        val objective: String,
+        val accusative: Pronoun,
 
         /**
          * Pronouns which indicates a thing possessed by another entity
@@ -25,7 +27,7 @@ data class Pronouns(
          *
          * This can be used as the head of a Noun Phrase to stand in for the thing being possessed.
          */
-        val possessivePronoun: String,
+        val possessivePronoun: Pronoun,
 
         /**
          * Function Word used in front of a noun to express belonging
@@ -34,14 +36,29 @@ data class Pronouns(
          * This is different from the Possessive Pronouns, in that it cannot directly be substituted for the noun,
          * but only modifies it.
          */
-        val possessiveDeterminer: String,
+        val possessiveDeterminer: Pronoun,
 
         /**
          * Form used when an entity performs an action on itself.
          * Examples: "He/she/it hurt [himself/herself/itself]
          */
-        val reflexive: String
+        val reflexive: Pronoun
 ) {
+
+    constructor(
+            nominative: String,
+            accusative: String,
+            possessivePronoun: String,
+            possessiveDeterminer: String,
+            reflexive: String
+    ): this (
+            Pronoun(nominative),
+            Pronoun(accusative),
+            Pronoun(possessivePronoun),
+            Pronoun(possessiveDeterminer),
+            Pronoun(reflexive)
+    )
+
     companion object {
 
         /**
@@ -78,4 +95,10 @@ data class Pronouns(
         val SECOND_PERSON_SINGULAR = Pronouns("you", "you", "yours", "your", "yourself")
 
     }
+
+    fun get(case: Case) =
+            when (case) {
+                Case.NOMINATIVE -> nominative
+                Case.ACCUSATIVE -> accusative
+            }
 }
