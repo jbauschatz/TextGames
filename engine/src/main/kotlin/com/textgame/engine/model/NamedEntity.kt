@@ -5,7 +5,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 
 interface NamedEntity {
 
-    fun getName(): NounPhrase
+    val name: NounPhrase
 
-    fun getPronouns(): Pronouns
+    val pronouns: Pronouns
 }

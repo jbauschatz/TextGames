@@ -2,6 +2,10 @@ package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.GameCommand
 import com.textgame.dungeoncrawl.command.MoveCommand
+import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.map.Location
+import com.textgame.dungeoncrawl.model.map.MapGenerator
+import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.ProperNoun
@@ -18,14 +22,19 @@ class Game {
 
     private val player = Creature(ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR)
 
+    lateinit var currentLocation: Location
+
     /**
      * Begins a new game and starts the game-loop
      */
     fun begin() {
+        currentLocation = MapGenerator.generateSmallMap()
+
         // Configure the Narrator for second person player narration
         narrator.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
 
         System.out.println("Welcome to the game." + System.lineSeparator())
+        describeLocation()
 
         while (true) {
             val command = readCommand()
@@ -43,10 +52,20 @@ class Game {
     }
 
     /**
-     * Executes a [MoveCommand]
+     * Executes a [MoveCommand], by moving the appropriate Creature into its destination
      */
     private fun execute(move: MoveCommand) {
         narrate(SimpleSentence(move.mover, "go", move.direction))
+        currentLocation = currentLocation.doors[move.direction]!!
+        describeLocation()
+    }
+
+    private fun describeLocation() {
+        narrate(NounPhraseFormatter.format(currentLocation.name, titleCase = true))
+        narrate(currentLocation.description)
+
+        val formattedDoors = currentLocation.doors.keys.map { NounPhraseFormatter.format(it.name) }
+        narrate("You can go " + FormattingUtil.formatList(formattedDoors) + ".")
     }
 
     /**
@@ -97,9 +116,9 @@ class Game {
             return null
         }
         val direction = words[1]
-        val allDirections = listOf(CardinalDirection.NORTH, CardinalDirection.SOUTH, CardinalDirection.EAST, CardinalDirection.WEST)
+        val allDirections = currentLocation.doors.keys
         for (cardinalDirection in allDirections) {
-            val cardinalDirectionName = NounPhraseFormatter.format(cardinalDirection.getName())
+            val cardinalDirectionName = NounPhraseFormatter.format(cardinalDirection.name)
             if (direction.toLowerCase() == cardinalDirectionName.toLowerCase())
                 return MoveCommand(player, cardinalDirection)
         }

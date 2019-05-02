@@ -13,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    module("engine")
+    implementation(project(":engine"))
     implementation(kotlin("stdlib-jdk8"))
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")

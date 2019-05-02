@@ -1,4 +1,4 @@
-package com.textgame.dungeoncrawl
+package com.textgame.dungeoncrawl.model.map
 
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.nounphrase.Pronouns
@@ -8,7 +8,9 @@ import com.textgame.engine.model.nounphrase.ProperNoun
 /**
  * Used to refer to directions within a sentence, ie "You go north"
  */
-class CardinalDirection(private val name: NounPhrase): NamedEntity {
+data class CardinalDirection(
+        override val name: NounPhrase
+): NamedEntity {
 
     companion object {
         val NORTH = CardinalDirection(ProperNoun("north"))
@@ -17,9 +19,6 @@ class CardinalDirection(private val name: NounPhrase): NamedEntity {
         val WEST = CardinalDirection(ProperNoun("west"))
     }
 
-    override fun getName(): NounPhrase =
-            name
-
-    override fun getPronouns(): Pronouns =
-            Pronouns.THIRD_PERSON_SINGULAR_FEMININE
+    override val pronouns: Pronouns
+        get() = Pronouns.THIRD_PERSON_SINGULAR_FEMININE
 }

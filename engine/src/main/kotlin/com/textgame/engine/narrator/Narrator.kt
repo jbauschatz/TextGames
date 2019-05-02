@@ -70,12 +70,12 @@ class Narrator(
             if (pronounOverride.containsKey(namedEntity))
                 name = pronounOverride[namedEntity]!!.reflexive
             else
-                name = namedEntity.getPronouns().reflexive
+                name = namedEntity.pronouns.reflexive
         } else {
             name = when {
                 pronounOverride.containsKey(namedEntity) -> pronounOverride[namedEntity]!!.get(case)
-                narrativeContext.isKnownEntity(namedEntity) -> namedEntity.getName().definite()
-                else -> namedEntity.getName().indefinite()
+                narrativeContext.isKnownEntity(namedEntity) -> namedEntity.name.definite()
+                else -> namedEntity.name.indefinite()
             }
         }
 
