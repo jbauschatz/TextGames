@@ -1,14 +1,14 @@
 package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.GameCommand
+import com.textgame.dungeoncrawl.command.InventoryCommand
 import com.textgame.dungeoncrawl.command.MoveCommand
 import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator
 import com.textgame.engine.FormattingUtil
-import com.textgame.engine.model.nounphrase.NounPhraseFormatter
-import com.textgame.engine.model.nounphrase.Pronouns
-import com.textgame.engine.model.nounphrase.ProperNoun
+import com.textgame.engine.model.nounphrase.*
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.narrator.NarrativeContext
 import com.textgame.engine.narrator.Narrator
@@ -30,6 +30,10 @@ class Game {
     fun begin() {
         currentLocation = MapGenerator.generateSmallMap()
 
+        player.inventory.addItem(Item(Adjective("small", Noun("key"))))
+        player.inventory.addItem(Item(Adjective("iron", Noun("shackle"))))
+        player.inventory.addItem(Item(Adjective("rusty", Noun("dagger"))))
+
         // Configure the Narrator for second person player narration
         narrator.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
 
@@ -48,6 +52,8 @@ class Game {
     private fun execute(command: GameCommand) {
         when (command) {
             is MoveCommand -> execute(command)
+            is InventoryCommand -> execute(command)
+            else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
     }
 
@@ -58,6 +64,18 @@ class Game {
         narrate(SimpleSentence(move.mover, "go", move.direction))
         currentLocation = currentLocation.doors[move.direction]!!
         describeLocation()
+    }
+
+    /**
+     * Executes an [InventoryCommand], by listing the player's current inventory
+     */
+    private fun execute(move: InventoryCommand) {
+        if (player.inventory.items().isEmpty()) {
+            narrate("You carry nothing.")
+        } else {
+            val itemNames = player.inventory.items().map { NounPhraseFormatter.format(it.name.indefinite()) }
+            narrate("You carry " + FormattingUtil.formatList(itemNames) + ".")
+        }
     }
 
     private fun describeLocation() {
@@ -91,7 +109,8 @@ class Game {
             if (!input.isEmpty()) {
                 val words = input.split(" ")
                 val command = when (words[0]) {
-                    "go", "move" -> parseMove(input, words)
+                    "go", "move" -> parseMove(words)
+                    "items", "inventory" -> parseInventory()
                     else -> {
                         narrate("Invalid command.")
                         null
@@ -110,7 +129,7 @@ class Game {
      *
      * If the move is not a valid direction, prints an error message and returns null.
      */
-    private fun parseMove(line: String, words: List<String>): GameCommand? {
+    private fun parseMove(words: List<String>): GameCommand? {
         if (words.size == 1) {
             narrate("You must input a direction.")
             return null
@@ -126,4 +145,7 @@ class Game {
         narrate("You cannot go that way.")
         return null
     }
+
+    private fun parseInventory() =
+            InventoryCommand()
 }

@@ -7,4 +7,7 @@ import com.textgame.engine.model.nounphrase.NounPhrase
 data class Creature(
         override val name: NounPhrase,
         override val pronouns: Pronouns
-): NamedEntity
+): NamedEntity {
+
+    val inventory: Inventory = Inventory()
+}
