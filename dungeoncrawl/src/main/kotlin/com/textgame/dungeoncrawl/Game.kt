@@ -31,7 +31,6 @@ class Game {
         currentLocation = MapGenerator.generateSmallMap()
 
         player.inventory.addItem(Item(Adjective("small", Noun("key"))))
-        player.inventory.addItem(Item(Adjective("iron", Noun("shackle"))))
         player.inventory.addItem(Item(Adjective("rusty", Noun("dagger"))))
 
         // Configure the Narrator for second person player narration
@@ -81,6 +80,9 @@ class Game {
     private fun describeLocation() {
         narrate(NounPhraseFormatter.format(currentLocation.name, titleCase = true))
         narrate(currentLocation.description)
+
+        val itemNames = currentLocation.inventory.items().map { NounPhraseFormatter.format(it.name.indefinite()) }
+        narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
 
         val formattedDoors = currentLocation.doors.keys.map { NounPhraseFormatter.format(it.name) }
         narrate("You can go " + FormattingUtil.formatList(formattedDoors) + ".")
