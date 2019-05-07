@@ -1,9 +1,6 @@
 package com.textgame.dungeoncrawl
 
-import com.textgame.dungeoncrawl.command.GameCommand
-import com.textgame.dungeoncrawl.command.InventoryCommand
-import com.textgame.dungeoncrawl.command.MoveCommand
-import com.textgame.dungeoncrawl.command.TakeItemCommand
+import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.Creature
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
@@ -54,6 +51,7 @@ class Game {
             is MoveCommand -> execute(command)
             is InventoryCommand -> execute(command)
             is TakeItemCommand -> execute(command)
+            is LookCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
     }
@@ -87,6 +85,13 @@ class Game {
         takeItem.actor.inventory.addItem(takeItem.item)
 
         narrate(SimpleSentence(takeItem.actor, "take", takeItem.item))
+    }
+
+    /**
+     * Executes a [LookCommand] by describing the player's current [Location]
+     */
+    private fun execute(look: LookCommand) {
+        describeLocation()
     }
 
     private fun describeLocation() {
@@ -130,6 +135,7 @@ class Game {
                     "go", "move" -> parseMove(words)
                     "items", "inventory" -> parseInventory()
                     "get", "take" -> parseTakeItem(words)
+                    "look" -> LookCommand()
                     else -> {
                         narrate("Invalid command.")
                         null
