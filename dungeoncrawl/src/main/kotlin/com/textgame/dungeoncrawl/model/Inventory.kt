@@ -1,6 +1,7 @@
 package com.textgame.dungeoncrawl.model
 
 import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 
 class Inventory {
 
@@ -14,4 +15,7 @@ class Inventory {
 
     fun items(): List<Item> =
             items
+
+    fun findByName(name: String): List<Item> =
+            items.filter { NounPhraseFormatter.format(it.name).toLowerCase() == name.toLowerCase() }
 }

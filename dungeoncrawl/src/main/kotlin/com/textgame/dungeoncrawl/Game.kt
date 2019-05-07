@@ -3,6 +3,7 @@ package com.textgame.dungeoncrawl
 import com.textgame.dungeoncrawl.command.GameCommand
 import com.textgame.dungeoncrawl.command.InventoryCommand
 import com.textgame.dungeoncrawl.command.MoveCommand
+import com.textgame.dungeoncrawl.command.TakeItemCommand
 import com.textgame.dungeoncrawl.model.Creature
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
@@ -52,6 +53,7 @@ class Game {
         when (command) {
             is MoveCommand -> execute(command)
             is InventoryCommand -> execute(command)
+            is TakeItemCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
     }
@@ -60,7 +62,7 @@ class Game {
      * Executes a [MoveCommand], by moving the appropriate Creature into its destination
      */
     private fun execute(move: MoveCommand) {
-        narrate(SimpleSentence(move.mover, "go", move.direction))
+        narrate(SimpleSentence(move.actor, "go", move.direction))
         currentLocation = currentLocation.doors[move.direction]!!
         describeLocation()
     }
@@ -77,12 +79,26 @@ class Game {
         }
     }
 
+    /**
+     * Executes a [TakeItemCommand] by transferring the item from the [Location]'s inventory to the actor's
+     */
+    private fun execute(takeItem: TakeItemCommand) {
+        takeItem.location.inventory.removeItem(takeItem.item)
+        takeItem.actor.inventory.addItem(takeItem.item)
+
+        narrate(SimpleSentence(takeItem.actor, "take", takeItem.item))
+    }
+
     private fun describeLocation() {
         narrate(NounPhraseFormatter.format(currentLocation.name, titleCase = true))
         narrate(currentLocation.description)
 
-        val itemNames = currentLocation.inventory.items().map { NounPhraseFormatter.format(it.name.indefinite()) }
-        narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
+        if (currentLocation.inventory.items().isEmpty()) {
+            narrate("You don't see anything of value here.")
+        } else {
+            val itemNames = currentLocation.inventory.items().map { NounPhraseFormatter.format(it.name.indefinite()) }
+            narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
+        }
 
         val formattedDoors = currentLocation.doors.keys.map { NounPhraseFormatter.format(it.name) }
         narrate("You can go " + FormattingUtil.formatList(formattedDoors) + ".")
@@ -113,6 +129,7 @@ class Game {
                 val command = when (words[0]) {
                     "go", "move" -> parseMove(words)
                     "items", "inventory" -> parseInventory()
+                    "get", "take" -> parseTakeItem(words)
                     else -> {
                         narrate("Invalid command.")
                         null
@@ -131,7 +148,7 @@ class Game {
      *
      * If the move is not a valid direction, prints an error message and returns null.
      */
-    private fun parseMove(words: List<String>): GameCommand? {
+    private fun parseMove(words: List<String>): MoveCommand? {
         if (words.size == 1) {
             narrate("You must input a direction.")
             return null
@@ -150,4 +167,30 @@ class Game {
 
     private fun parseInventory() =
             InventoryCommand()
+
+    private fun parseTakeItem(words: List<String>): TakeItemCommand? {
+        if (words.size == 1) {
+            narrate("Specify the name of an item to take.")
+            return null
+        }
+
+        val name = words.subList(1, words.size).joinToString(" ")
+        val itemsByName = currentLocation.inventory.findByName(name)
+
+        when {
+            itemsByName.isEmpty() -> {
+                narrate("There is nothing here by that name.")
+                return null
+            }
+            itemsByName.size > 1 -> {
+                narrate("There are multiple items by that name. Try being more specific.")
+                return null
+            }
+            else -> {
+                val item = itemsByName[0]
+                return TakeItemCommand(player, item, currentLocation)
+            }
+        }
+    }
+
 }

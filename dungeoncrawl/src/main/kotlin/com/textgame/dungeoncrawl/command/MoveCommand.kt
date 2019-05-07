@@ -4,6 +4,6 @@ import com.textgame.dungeoncrawl.model.Creature
 import com.textgame.engine.model.NamedEntity
 
 class MoveCommand(
-        val mover: Creature,
+        val actor: Creature,
         val direction: NamedEntity
 ) : GameCommand
