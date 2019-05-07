@@ -23,6 +23,7 @@ class MapGenerator {
                     "Your footsteps echo faintly down the long stone corridor."
             )
             hallway.inventory.addItem(Item(Adjective("gold", Noun("coin"))))
+            hallway.inventory.addItem(Item(Adjective("iron", Noun("coin"))))
 
             cell.doors[CardinalDirection.NORTH] = hallway
             hallway.doors[CardinalDirection.SOUTH] = cell

@@ -1,6 +1,7 @@
 package com.textgame.dungeoncrawl.model
 
 import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
@@ -71,7 +72,7 @@ class InventoryTest {
 
         inventory.addItem(Item(Noun("item2")))
 
-        // WHEN searching by the the name of an item, differently capitalized
+        // WHEN searching by the name of an item, differently capitalized
         val items = inventory.findByName("ITEM1")
 
         // EXPECT the item to be found
@@ -91,10 +92,26 @@ class InventoryTest {
         val item2 = Item(Noun("key"))
         inventory.addItem(item2)
 
-        // WHEN searching by the the name of multiple items
+        // WHEN searching by the name of multiple items
         val items = inventory.findByName("KEY")
 
         // EXPECT each matching item to be found
         assertThat(items, containsInAnyOrder(item1, item2))
+    }
+
+    @Test
+    fun findById_distinctPartialMatch() {
+        // GIVEN an Inventory containing multiple items
+        val inventory = Inventory()
+
+        val item = Item(Adjective("gold", Noun("coin")))
+        inventory.addItem(item)
+        inventory.addItem(Item(Noun("spoon")))
+
+        // WHEN searching by the partial name of one of the items
+        val items = inventory.findByName("coin")
+
+        // EXPECT the item to be found
+        assertThat(items, containsInAnyOrder(item))
     }
 }
