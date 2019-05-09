@@ -1,21 +1,21 @@
 package com.textgame.dungeoncrawl.model
 
-import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.nounphrase.PartialNameMatcher
 
-class Inventory {
+class Inventory<T : NamedEntity> {
 
-    private val items: MutableList<Item> = mutableListOf()
+    private val members: MutableList<T> = mutableListOf()
 
-    fun addItem(item: Item) =
-            items.add(item)
+    fun add(item: T) =
+            members.add(item)
 
-    fun removeItem(item: Item) =
-            items.remove(item)
+    fun remove(item: T) =
+            members.remove(item)
 
-    fun items(): List<Item> =
-            items
+    fun members(): List<T> =
+            members
 
-    fun findByName(name: String): List<Item> =
-            items.filter { PartialNameMatcher.matches(name, it.name) }
+    fun findByName(name: String): List<T> =
+            members.filter { PartialNameMatcher.matches(name, it.name) }
 }

@@ -28,8 +28,9 @@ class Game {
     fun begin() {
         currentLocation = MapGenerator.generateSmallMap()
 
-        player.inventory.addItem(Item(Adjective("small", Noun("key"))))
-        player.inventory.addItem(Item(Adjective("rusty", Noun("dagger"))))
+        // Player's starting equipment
+        player.inventory.add(Item(Adjective("small", Noun("key"))))
+        player.inventory.add(Item(Adjective("rusty", Noun("dagger"))))
 
         // Configure the Narrator for second person player narration
         narrator.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
@@ -69,20 +70,20 @@ class Game {
      * Executes an [InventoryCommand], by listing the player's current inventory
      */
     private fun execute(move: InventoryCommand) {
-        if (player.inventory.items().isEmpty()) {
+        if (player.inventory.members().isEmpty()) {
             narrate("You carry nothing.")
         } else {
-            val itemNames = player.inventory.items().map { NounPhraseFormatter.format(it.name.indefinite()) }
+            val itemNames = player.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You carry " + FormattingUtil.formatList(itemNames) + ".")
         }
     }
 
     /**
-     * Executes a [TakeItemCommand] by transferring the item from the [Location]'s inventory to the actor's
+     * Executes a [TakeItemCommand] by transferring the [Item] from the [Location]'s [Inventory] to the acting [Creature]'s
      */
     private fun execute(takeItem: TakeItemCommand) {
-        takeItem.location.inventory.removeItem(takeItem.item)
-        takeItem.actor.inventory.addItem(takeItem.item)
+        takeItem.location.inventory.remove(takeItem.item)
+        takeItem.actor.inventory.add(takeItem.item)
 
         narrate(SimpleSentence(takeItem.actor, "take", takeItem.item))
     }
@@ -98,10 +99,16 @@ class Game {
         narrate(NounPhraseFormatter.format(currentLocation.name, titleCase = true))
         narrate(currentLocation.description)
 
-        if (currentLocation.inventory.items().isEmpty()) {
+        val otherCreatures = currentLocation.creatures.members().filter { it != player }
+        if (!otherCreatures.isEmpty()) {
+            val otherCreatureNames = otherCreatures.map { NounPhraseFormatter.format(it.name.indefinite()) }
+            narrate("You see " + FormattingUtil.formatList(otherCreatureNames) + ".")
+        }
+
+        if (currentLocation.inventory.members().isEmpty()) {
             narrate("You don't see anything of value here.")
         } else {
-            val itemNames = currentLocation.inventory.items().map { NounPhraseFormatter.format(it.name.indefinite()) }
+            val itemNames = currentLocation.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
         }
 
