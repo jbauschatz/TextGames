@@ -26,7 +26,7 @@ class MapGenerator {
             hallway.inventory.add(Item(Adjective("gold", Noun("coin"))))
             hallway.inventory.add(Item(Adjective("iron", Noun("coin"))))
 
-            val guard = Creature(Adjective("prison", Noun("guard")), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+            val guard = Creature(Adjective("prison", Noun("guard")), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE, hallway)
             hallway.creatures.add(guard)
 
             cell.doors[CardinalDirection.NORTH] = hallway

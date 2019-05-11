@@ -1,6 +1,8 @@
 package com.textgame.dungeoncrawl.command
 
+import com.textgame.dungeoncrawl.model.Creature
+
 /**
- * Command to list the Player's inventory
+ * Command to list the given actor's inventory
  */
-class InventoryCommand: GameCommand
+class InventoryCommand(val actor: Creature): GameCommand

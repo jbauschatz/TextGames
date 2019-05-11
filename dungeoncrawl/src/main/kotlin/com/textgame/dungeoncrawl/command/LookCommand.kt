@@ -1,3 +1,6 @@
 package com.textgame.dungeoncrawl.command
 
-class LookCommand: GameCommand
+import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.map.Location
+
+class LookCommand(val actor: Creature, val location: Location): GameCommand
