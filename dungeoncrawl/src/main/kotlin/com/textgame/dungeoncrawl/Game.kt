@@ -1,24 +1,21 @@
 package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.*
+import com.textgame.dungeoncrawl.event.*
 import com.textgame.dungeoncrawl.model.Creature
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator
-import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.nounphrase.*
-import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.narrator.NarrativeContext
-import com.textgame.engine.narrator.Narrator
 import java.util.*
 
 class Game {
 
     private val scanner = Scanner(System.`in`)
 
-    private val narrator = Narrator(NarrativeContext())
-
     private val player = Creature(ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR)
+
+    private val listeners: MutableList<GameEventListener> = mutableListOf()
 
     lateinit var currentLocation: Location
 
@@ -26,17 +23,16 @@ class Game {
      * Begins a new game and starts the game-loop
      */
     fun begin() {
+        listeners.add(PlayerNarrator(player))
+
         currentLocation = MapGenerator.generateSmallMap()
 
         // Player's starting equipment
         player.inventory.add(Item(Adjective("small", Noun("key"))))
         player.inventory.add(Item(Adjective("rusty", Noun("dagger"))))
 
-        // Configure the Narrator for second person player narration
-        narrator.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
-
         System.out.println("Welcome to the game." + System.lineSeparator())
-        describeLocation()
+        execute(LookCommand())
 
         while (true) {
             val command = readCommand()
@@ -57,70 +53,47 @@ class Game {
         }
     }
 
+    private fun dispatchEvent(event: GameEvent) =
+            listeners.forEach { it.handleEvent(event) }
+
     /**
      * Executes a [MoveCommand], by moving the appropriate Creature into its destination
      */
     private fun execute(move: MoveCommand) {
-        narrate(SimpleSentence(move.actor, "go", move.direction))
-        currentLocation = currentLocation.doors[move.direction]!!
-        describeLocation()
+        // TODO this assumes the player is moving
+        val originalLocation = currentLocation
+        val newLocation = originalLocation.doors[move.direction]!!
+
+        // Move the Creature
+        currentLocation = newLocation
+
+        dispatchEvent(MoveEvent(player, move.direction, originalLocation, newLocation))
     }
 
     /**
      * Executes an [InventoryCommand], by listing the player's current inventory
      */
-    private fun execute(move: InventoryCommand) {
-        if (player.inventory.members().isEmpty()) {
-            narrate("You carry nothing.")
-        } else {
-            val itemNames = player.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
-            narrate("You carry " + FormattingUtil.formatList(itemNames) + ".")
-        }
+    private fun execute(inventory: InventoryCommand) {
+        dispatchEvent(InventoryEvent(player))
     }
 
     /**
      * Executes a [TakeItemCommand] by transferring the [Item] from the [Location]'s [Inventory] to the acting [Creature]'s
      */
     private fun execute(takeItem: TakeItemCommand) {
+        // Transfer the item from the Location to the Creature
         takeItem.location.inventory.remove(takeItem.item)
         takeItem.actor.inventory.add(takeItem.item)
 
-        narrate(SimpleSentence(takeItem.actor, "take", takeItem.item))
+        dispatchEvent(TakeItemEvent(takeItem.actor, takeItem.item, takeItem.location))
     }
 
     /**
      * Executes a [LookCommand] by describing the player's current [Location]
      */
     private fun execute(look: LookCommand) {
-        describeLocation()
+        dispatchEvent(LookEvent(player, currentLocation))
     }
-
-    private fun describeLocation() {
-        narrate(NounPhraseFormatter.format(currentLocation.name, titleCase = true))
-        narrate(currentLocation.description)
-
-        val otherCreatures = currentLocation.creatures.members().filter { it != player }
-        if (!otherCreatures.isEmpty()) {
-            val otherCreatureNames = otherCreatures.map { NounPhraseFormatter.format(it.name.indefinite()) }
-            narrate("You see " + FormattingUtil.formatList(otherCreatureNames) + ".")
-        }
-
-        if (currentLocation.inventory.members().isEmpty()) {
-            narrate("You don't see anything of value here.")
-        } else {
-            val itemNames = currentLocation.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
-            narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
-        }
-
-        val formattedDoors = currentLocation.doors.keys.map { NounPhraseFormatter.format(it.name) }
-        narrate("You can go " + FormattingUtil.formatList(formattedDoors) + ".")
-    }
-
-    /**
-     * Displays the given [SimpleSentence] to the user, as formatted by the configured [Narrator]
-     */
-    private fun narrate(sentence: SimpleSentence) =
-            narrate(narrator.writeSentence(sentence))
 
     /**
      * Displays the given string to the user following standard formatting.
