@@ -9,4 +9,6 @@ data class SimpleSentence(
         val verb: String,
 
         val directObject: NamedEntity?
-)
+) {
+    constructor(subject: NamedEntity, verb: String): this(subject, verb, null)
+}

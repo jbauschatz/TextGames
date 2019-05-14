@@ -30,6 +30,7 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
             is InventoryEvent -> handle(event)
             is MoveEvent -> handle(event)
             is TakeItemEvent -> handle(event)
+            is WaitEvent -> handle(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
         }
     }
@@ -57,6 +58,11 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
     fun handle(event: TakeItemEvent) {
         val verb = if (event.actor == player) "take" else "takes"
         narrate(SimpleSentence(event.actor, verb, event.item))
+    }
+
+    fun handle(event: WaitEvent) {
+        val verb = if (event.actor == player) "wait" else "waits"
+        narrate(SimpleSentence(event.actor, verb))
     }
 
     private fun describeLocation(location: Location) {

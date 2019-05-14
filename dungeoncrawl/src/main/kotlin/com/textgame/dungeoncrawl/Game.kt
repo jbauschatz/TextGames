@@ -50,6 +50,7 @@ class Game {
             is InventoryCommand -> execute(command)
             is TakeItemCommand -> execute(command)
             is LookCommand -> execute(command)
+            is WaitCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
     }
@@ -97,4 +98,10 @@ class Game {
 
         dispatchEvent(TakeItemEvent(takeItem.actor, takeItem.item, takeItem.location))
     }
+
+    /**
+     * Executes a [WaitCommand] by dispatching a [WaitEvent] for the acting [Creature]
+     */
+    private fun execute(wait: WaitCommand) =
+            dispatchEvent(WaitEvent(wait.actor))
 }

@@ -27,6 +27,7 @@ class CommandParser(private val player: Creature) {
                     "items", "inventory" -> parseInventory()
                     "get", "take" -> parseTakeItem(words)
                     "look" -> LookCommand(player, player.location)
+                    "wait" -> WaitCommand(player)
                     else -> {
                         narrate("Invalid command.")
                         null
