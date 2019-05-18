@@ -31,47 +31,64 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
 
     override fun handleEvent(event: GameEvent) {
         when (event) {
-            is LookEvent -> handle(event)
-            is InventoryEvent -> handle(event)
-            is MoveEvent -> handle(event)
-            is TakeItemEvent -> handle(event)
-            is WaitEvent -> handle(event)
-            is EquipItemEvent -> handle(event)
+            is LookEvent -> handleLook(event)
+            is InventoryEvent -> handleInventory()
+            is MoveEvent -> handleMove(event)
+            is TakeItemEvent -> handleTakeItem(event)
+            is WaitEvent -> handleWait(event)
+            is EquipItemEvent -> handleEquipItem(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
         }
     }
 
-    fun handle(event: LookEvent) {
+    private fun handleLook(event: LookEvent) {
         describeLocation(event.location)
     }
 
-    fun handle(event: InventoryEvent) {
-        if (player.inventory.members().isEmpty()) {
-            narrate("You carry nothing.")
-        } else {
+    private fun handleInventory() {
+        val armed = player.weapon != null
+        val hasItems = player.inventory.members().isNotEmpty()
+
+        if (hasItems) {
+            if (armed) {
+                narrate(String.format("You are armed with %s.",
+                        NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
+            }
+
             val itemNames = player.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You carry " + FormattingUtil.formatList(itemNames) + ".")
+
+            if (!armed) {
+                narrate("You are unarmed.")
+            }
+        } else {
+            if (armed) {
+                narrate(String.format("You are armed with %s, and carry nothing else.",
+                        NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
+            } else {
+                narrate("You are unarmed, and carry nothing.")
+            }
         }
     }
 
-    fun handle(event: MoveEvent) {
+    private fun handleMove(event: MoveEvent) {
         if (event.actor == player) {
             narrate(SimpleSentence(player, "go", event.direction))
             describeLocation(event.toLocation)
         }
     }
 
-    fun handle(event: TakeItemEvent) {
+    private fun handleTakeItem(event: TakeItemEvent) {
         val verb = if (event.actor == player) "take" else "takes"
         narrate(SimpleSentence(event.actor, verb, event.item))
     }
 
-    fun handle(event: WaitEvent) {
+    private fun handleWait(event: WaitEvent) {
         val verb = if (event.actor == player) "wait" else "waits"
         narrate(SimpleSentence(event.actor, verb))
     }
 
-    fun handle(event: EquipItemEvent) {
+    private fun handleEquipItem(event: EquipItemEvent) {
         val verb = if (event.actor == player) "equip" else "equips"
         narrate(SimpleSentence(event.actor, verb, event.item))
     }
@@ -80,12 +97,14 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
         narrate(NounPhraseFormatter.format(location.name, titleCase = true))
         narrate(location.description)
 
+        // List other creatures occupying the room
         val otherCreatures = location.creatures.members().filter { it != player }
-        if (!otherCreatures.isEmpty()) {
+        if (otherCreatures.isNotEmpty()) {
             val otherCreatureNames = otherCreatures.map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You see " + FormattingUtil.formatList(otherCreatureNames) + ".")
         }
 
+        // List items in the location
         if (location.inventory.members().isEmpty()) {
             narrate("You don't see anything of value here.")
         } else {
@@ -93,6 +112,7 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
             narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
         }
 
+        // List exits
         val formattedDoors = location.doors.keys.map { NounPhraseFormatter.format(it.name) }
         narrate("You can go " + FormattingUtil.formatList(formattedDoors) + ".")
     }
