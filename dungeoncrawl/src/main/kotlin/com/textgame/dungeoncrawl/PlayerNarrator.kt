@@ -22,6 +22,11 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
     init {
         // Configure second person narration for the Player
         narrator.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
+
+        // Player's starting items should be known objects in the Narrative Frame
+        player.inventory.members().forEach {
+            narrator.narrativeContext.addKnownEntity(it)
+        }
     }
 
     override fun handleEvent(event: GameEvent) {
@@ -31,6 +36,7 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
             is MoveEvent -> handle(event)
             is TakeItemEvent -> handle(event)
             is WaitEvent -> handle(event)
+            is EquipItemEvent -> handle(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
         }
     }
@@ -63,6 +69,11 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
     fun handle(event: WaitEvent) {
         val verb = if (event.actor == player) "wait" else "waits"
         narrate(SimpleSentence(event.actor, verb))
+    }
+
+    fun handle(event: EquipItemEvent) {
+        val verb = if (event.actor == player) "equip" else "equips"
+        narrate(SimpleSentence(event.actor, verb, event.item))
     }
 
     private fun describeLocation(location: Location) {

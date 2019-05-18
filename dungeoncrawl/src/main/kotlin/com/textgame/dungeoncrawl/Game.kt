@@ -51,6 +51,7 @@ class Game {
             is TakeItemCommand -> execute(command)
             is LookCommand -> execute(command)
             is WaitCommand -> execute(command)
+            is EquipItemCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
     }
@@ -104,4 +105,18 @@ class Game {
      */
     private fun execute(wait: WaitCommand) =
             dispatchEvent(WaitEvent(wait.actor))
+
+    /**
+     * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Inventory] to its [Creature.weapon] slot
+     *
+     * Dispatches an [EquipItemEvent] representing the change in state
+     */
+    private fun execute(equip: EquipItemCommand) {
+        // TODO if the Creature already has an item equipped, how should this be handled?
+
+        equip.actor.inventory.remove(equip.item)
+        equip.actor.weapon = equip.item
+
+        dispatchEvent(EquipItemEvent(equip.actor, equip.item))
+    }
 }

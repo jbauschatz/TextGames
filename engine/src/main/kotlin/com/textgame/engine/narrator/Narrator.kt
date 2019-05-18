@@ -9,7 +9,7 @@ import com.textgame.engine.model.sentence.SimpleSentence
 import java.lang.StringBuilder
 
 class Narrator(
-        private val narrativeContext: NarrativeContext
+       val narrativeContext: NarrativeContext
 ) {
 
     private val pronounOverride: MutableMap<NamedEntity, Pronouns> = HashMap()

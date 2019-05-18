@@ -28,6 +28,7 @@ class CommandParser(private val player: Creature) {
                     "get", "take" -> parseTakeItem(words)
                     "look" -> LookCommand(player, player.location)
                     "wait" -> WaitCommand(player)
+                    "equip" -> parseEquipItem(words)
                     else -> {
                         narrate("Invalid command.")
                         null
@@ -88,6 +89,26 @@ class CommandParser(private val player: Creature) {
                 val item = itemsByName[0]
                 return TakeItemCommand(player, item, player.location)
             }
+        }
+    }
+
+    private fun parseEquipItem(words: List<String>): EquipItemCommand? {
+        if (words.size == 1) {
+            narrate("Specify the name of an item you carry to equip.")
+        }
+
+        val name = words.subList(1, words.size).joinToString(" ")
+        val itemsByName = player.inventory.findByName(name)
+
+        if (itemsByName.isEmpty()) {
+            narrate("You don't carry anything by that name.")
+            return null
+        }
+        if (itemsByName.size > 1) {
+            narrate("You carry multiple items by that name. Try being more specific.")
+            return null
+        } else {
+            return EquipItemCommand(player, itemsByName[0])
         }
     }
 

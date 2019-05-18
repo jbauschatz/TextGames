@@ -13,4 +13,6 @@ data class Creature(
 ): NamedEntity {
 
     val inventory: Inventory<Item> = Inventory()
+
+    var weapon: Item? = null
 }
