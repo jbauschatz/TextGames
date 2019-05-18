@@ -53,6 +53,7 @@ class Game {
             is LookCommand -> execute(command)
             is WaitCommand -> execute(command)
             is EquipItemCommand -> execute(command)
+            is AttackCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
     }
@@ -119,5 +120,10 @@ class Game {
         equip.actor.weapon = equip.item
 
         dispatchEvent(EquipItemEvent(equip.actor, equip.item))
+    }
+
+    private fun execute(attack: AttackCommand) {
+        // TODO resolve the effects of combat
+        dispatchEvent(AttackEvent(attack.attacker, attack.defender, attack.weapon))
     }
 }

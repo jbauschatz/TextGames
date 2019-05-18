@@ -20,7 +20,7 @@ class CommandParser(private val player: Creature) {
             System.out.print("> ")
             val input = scanner.nextLine()
 
-            if (!input.isEmpty()) {
+            if (input.isNotEmpty()) {
                 val words = input.split(" ")
                 val command = when (words[0]) {
                     "go", "move" -> parseMove(words)
@@ -29,6 +29,7 @@ class CommandParser(private val player: Creature) {
                     "look" -> LookCommand(player, player.location)
                     "wait" -> WaitCommand(player)
                     "equip" -> parseEquipItem(words)
+                    "attack" -> parseAttack(words)
                     else -> {
                         narrate("Invalid command.")
                         null
@@ -73,21 +74,21 @@ class CommandParser(private val player: Creature) {
             return null
         }
 
-        val name = words.subList(1, words.size).joinToString(" ")
+        val name = parseDirectObject(words)
         val itemsByName = player.location.inventory.findByName(name)
 
-        when {
+        return when {
             itemsByName.isEmpty() -> {
                 narrate("There is nothing here by that name.")
-                return null
+                null
             }
             itemsByName.size > 1 -> {
                 narrate("There are multiple items by that name. Try being more specific.")
-                return null
+                null
             }
             else -> {
                 val item = itemsByName[0]
-                return TakeItemCommand(player, item, player.location)
+                TakeItemCommand(player, item, player.location)
             }
         }
     }
@@ -97,18 +98,50 @@ class CommandParser(private val player: Creature) {
             narrate("Specify the name of an item you carry to equip.")
         }
 
-        val name = words.subList(1, words.size).joinToString(" ")
+        val name = parseDirectObject(words)
         val itemsByName = player.inventory.findByName(name)
 
         if (itemsByName.isEmpty()) {
             narrate("You don't carry anything by that name.")
             return null
         }
-        if (itemsByName.size > 1) {
+        return if (itemsByName.size > 1) {
             narrate("You carry multiple items by that name. Try being more specific.")
-            return null
+            null
         } else {
-            return EquipItemCommand(player, itemsByName[0])
+            EquipItemCommand(player, itemsByName[0])
+        }
+    }
+
+    private fun parseAttack(words: List<String>): AttackCommand? {
+        val allEnemiesInLocation = player.location.creatures.members().filter { it != player }
+        // TODO filter this list to enemies of the Player
+
+        if (allEnemiesInLocation.isEmpty()) {
+            narrate("There are no enemies here to attack.")
+            return null
+        }
+
+        if (words.size == 1) {
+            // TODO if there is only one enemy in the location, pick it
+            narrate("Specify the name of an enemy to attack.")
+            return null
+        }
+
+        val enemyName = parseDirectObject(words)
+        val namedEnemies = player.location.creatures.findByName(enemyName)
+        // TODO filter this list to enemies of the Player
+
+        return when {
+            namedEnemies.isEmpty() -> {
+                narrate("There are no enemies here by that name.")
+                null
+            }
+            namedEnemies.size > 1 -> {
+                narrate("There are multiple enemies here by that name. Try being more specific.")
+                null
+            }
+            else -> AttackCommand(player, namedEnemies[0], player.weapon)
         }
     }
 
@@ -118,4 +151,6 @@ class CommandParser(private val player: Creature) {
     private fun narrate(string: String) =
             System.out.println(string + System.lineSeparator())
 
+    private fun parseDirectObject(words: List<String>): String =
+            words.subList(1, words.size).joinToString(" ")
 }

@@ -37,6 +37,7 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
             is TakeItemEvent -> handleTakeItem(event)
             is WaitEvent -> handleWait(event)
             is EquipItemEvent -> handleEquipItem(event)
+            is AttackEvent -> handleAttack(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
         }
     }
@@ -93,6 +94,11 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
         narrate(SimpleSentence(event.actor, verb, event.item))
     }
 
+    private fun handleAttack(event: AttackEvent) {
+        val verb = if (event.attacker == player) "attack" else "attacks"
+        narrate(SimpleSentence(event.attacker, verb, event.defender))
+    }
+
     private fun describeLocation(location: Location) {
         narrate(NounPhraseFormatter.format(location.name, titleCase = true))
         narrate(location.description)
@@ -102,6 +108,9 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
         if (otherCreatures.isNotEmpty()) {
             val otherCreatureNames = otherCreatures.map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You see " + FormattingUtil.formatList(otherCreatureNames) + ".")
+
+            // Any named Creatures should be known in the Narrative Context
+            otherCreatures.forEach { narrator.narrativeContext.addKnownEntity(it) }
         }
 
         // List items in the location
@@ -110,6 +119,9 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
         } else {
             val itemNames = location.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
+
+            // Any named Items should be known in the Narrative Context
+            location.inventory.members().forEach { narrator.narrativeContext.addKnownEntity(it) }
         }
 
         // List exits
