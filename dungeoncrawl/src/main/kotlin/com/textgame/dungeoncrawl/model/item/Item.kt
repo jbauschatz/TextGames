@@ -5,6 +5,7 @@ import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.Pronouns
 
 class Item(
-        override val name: NounPhrase,
-        override val pronouns: Pronouns = Pronouns.THIRD_PERSON_SINGULAR_NEUTER
-): NamedEntity
+        id: Int,
+        name: NounPhrase,
+        pronouns: Pronouns = Pronouns.THIRD_PERSON_SINGULAR_NEUTER
+): NamedEntity(id, name, pronouns)

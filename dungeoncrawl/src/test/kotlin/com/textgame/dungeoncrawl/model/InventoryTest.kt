@@ -14,13 +14,13 @@ class InventoryTest {
         // GIVEN an Inventory to which multiple items are added
         val inventory = Inventory<Item>()
 
-        val item1 = Item(Noun("item1"))
+        val item1 = Item(1, Noun("item1"))
         inventory.add(item1)
 
-        val item2 = Item(Noun("item2"))
+        val item2 = Item(2, Noun("item2"))
         inventory.add(item2)
 
-        val item3 = Item(Noun("item3"))
+        val item3 = Item(3, Noun("item3"))
         inventory.add(item3)
 
         // WHEN accessing the inventory's items
@@ -34,8 +34,8 @@ class InventoryTest {
     fun findById_none() {
         // GIVEN an Inventory containing multiple items
         val inventory = Inventory<Item>()
-        inventory.add(Item(Noun("item1")))
-        inventory.add(Item(Noun("item2")))
+        inventory.add(Item(1, Noun("item1")))
+        inventory.add(Item(2, Noun("item2")))
 
         // WHEN searching by a name that is not present
         val items = inventory.findByName("item3")
@@ -49,10 +49,10 @@ class InventoryTest {
         // GIVEN an Inventory containing multiple items
         val inventory = Inventory<Item>()
 
-        val item1 = Item(Noun("item1"))
+        val item1 = Item(1, Noun("item1"))
         inventory.add(item1)
 
-        val item2 = Item(Noun("item2"))
+        val item2 = Item(2, Noun("item2"))
         inventory.add(item2)
 
         // WHEN searching by the exact name of an item
@@ -67,10 +67,10 @@ class InventoryTest {
         // GIVEN an Inventory containing multiple items
         val inventory = Inventory<Item>()
 
-        val item1 = Item(Noun("item1"))
+        val item1 = Item(1, Noun("item1"))
         inventory.add(item1)
 
-        inventory.add(Item(Noun("item2")))
+        inventory.add(Item(2, Noun("item2")))
 
         // WHEN searching by the name of an item, differently capitalized
         val items = inventory.findByName("ITEM1")
@@ -84,12 +84,12 @@ class InventoryTest {
         // GIVEN an Inventory containing multiple items
         val inventory = Inventory<Item>()
 
-        val item1 = Item(Noun("key"))
+        val item1 = Item(1, Noun("key"))
         inventory.add(item1)
 
-        inventory.add(Item(Noun("spoon")))
+        inventory.add(Item(1, Noun("spoon")))
 
-        val item2 = Item(Noun("key"))
+        val item2 = Item(1, Noun("key"))
         inventory.add(item2)
 
         // WHEN searching by the name of multiple items
@@ -104,9 +104,9 @@ class InventoryTest {
         // GIVEN an Inventory containing multiple items
         val inventory = Inventory<Item>()
 
-        val item = Item(Adjective("gold", Noun("coin")))
+        val item = Item(1, Adjective("gold", Noun("coin")))
         inventory.add(item)
-        inventory.add(Item(Noun("spoon")))
+        inventory.add(Item(1, Noun("spoon")))
 
         // WHEN searching by the partial name of one of the items
         val items = inventory.findByName("coin")

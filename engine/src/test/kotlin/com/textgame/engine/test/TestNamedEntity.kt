@@ -4,7 +4,8 @@ import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.NounPhrase
 
-data class TestNamedEntity(
-        override val name: NounPhrase,
-        override val pronouns: Pronouns
-): NamedEntity
+class TestNamedEntity(
+        id: Int,
+        name: NounPhrase,
+        pronouns: Pronouns
+): NamedEntity(id, name, pronouns)

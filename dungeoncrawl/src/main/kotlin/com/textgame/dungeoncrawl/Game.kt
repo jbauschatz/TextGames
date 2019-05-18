@@ -7,6 +7,7 @@ import com.textgame.dungeoncrawl.model.Inventory
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator
+import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns
@@ -22,9 +23,9 @@ class Game {
     fun begin() {
         // Initialize the Player with their starting location and equipment
         val startingLocation = MapGenerator.generateSmallMap()
-        val player = Creature(ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, startingLocation)
-        player.inventory.add(Item(Adjective("small", Noun("key"))))
-        player.inventory.add(Item(Adjective("rusty", Noun("dagger"))))
+        val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, startingLocation)
+        player.inventory.add(Item(nextId(), Adjective("small", Noun("key"))))
+        player.inventory.add(Item(nextId(), Adjective("rusty", Noun("dagger"))))
 
         // Configure input and output for the Player
         listeners.add(PlayerNarrator(player))

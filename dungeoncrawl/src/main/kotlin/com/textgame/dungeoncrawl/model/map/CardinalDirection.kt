@@ -8,17 +8,15 @@ import com.textgame.engine.model.nounphrase.ProperNoun
 /**
  * Used to refer to directions within a sentence, ie "You go north"
  */
-data class CardinalDirection(
-        override val name: NounPhrase
-): NamedEntity {
+class CardinalDirection(
+        id: Int,
+        name: NounPhrase
+): NamedEntity(id, name, Pronouns.THIRD_PERSON_SINGULAR_FEMININE) {
 
     companion object {
-        val NORTH = CardinalDirection(ProperNoun("north"))
-        val SOUTH = CardinalDirection(ProperNoun("south"))
-        val EAST = CardinalDirection(ProperNoun("east"))
-        val WEST = CardinalDirection(ProperNoun("west"))
+        val NORTH = CardinalDirection(nextId(), ProperNoun("north"))
+        val SOUTH = CardinalDirection(nextId(), ProperNoun("south"))
+        val EAST = CardinalDirection(nextId(), ProperNoun("east"))
+        val WEST = CardinalDirection(nextId(), ProperNoun("west"))
     }
-
-    override val pronouns: Pronouns
-        get() = Pronouns.THIRD_PERSON_SINGULAR_FEMININE
 }

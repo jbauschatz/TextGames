@@ -28,9 +28,9 @@ class NarratorTest {
     fun writeSentence_properSubjectAndObject() {
         // GIVEN a Sentence whose Subject and Object are Proper Nouns
         val sentence = SimpleSentence(
-                TestNamedEntity(ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
+                TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
                 "saw",
-                TestNamedEntity(ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+                TestNamedEntity(2, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
         )
 
         // WHEN writing the sentence
@@ -43,8 +43,8 @@ class NarratorTest {
     @Test
     fun writeSentence_unknownNouns() {
         // GIVEN a Sentence whose Subject and Object are Nouns, and unknown in the Narrative context
-        val subject = TestNamedEntity(Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
-        val directObject = TestNamedEntity(Noun("ball"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
 
         val sentence = SimpleSentence(
                 subject,
@@ -64,8 +64,8 @@ class NarratorTest {
     @Test
     fun writeSentence_knownNouns() {
         // GIVEN a Sentence whose Subject and Object are Nouns known in the NarrativeContext
-        val subject = TestNamedEntity(Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
-        val directObject = TestNamedEntity(Noun("ball"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
 
         narrativeContext.addKnownEntity(subject)
         narrativeContext.addKnownEntity(directObject)
@@ -89,7 +89,7 @@ class NarratorTest {
     @Test
     fun writeSentence_reflexive() {
         // GIVEN a Sentence whose Subject and Object are the same entity
-        val subjectObject = TestNamedEntity(Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val subjectObject = TestNamedEntity(1, Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
 
         val sentence = SimpleSentence(
                 subjectObject,
@@ -109,13 +109,13 @@ class NarratorTest {
     @Test
     fun writeSentence_pronounOverride() {
         // GIVEN a Sentence whose Subject has an overridden pronoun
-        val subject = TestNamedEntity(Noun("boy"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val subject = TestNamedEntity(1, Noun("boy"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
         narrator.overridePronouns(subject, Pronouns.SECOND_PERSON_SINGULAR)
 
         val sentence = SimpleSentence(
                 subject,
                 "draw",
-                TestNamedEntity(Noun("sword"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
+                TestNamedEntity(2, Noun("sword"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
         )
 
         // WHEN writing the sentence
@@ -128,7 +128,7 @@ class NarratorTest {
     @Test
     fun writeSentence_reflexiveWithOverride() {
         // GIVEN a Sentence whose Subject and Object are the same entity
-        val subjectObject = TestNamedEntity(Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val subjectObject = TestNamedEntity(1, Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
         narrator.overridePronouns(subjectObject, Pronouns.SECOND_PERSON_SINGULAR)
 
         val sentence = SimpleSentence(

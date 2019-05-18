@@ -6,11 +6,12 @@ import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.NounPhrase
 
-data class Creature(
-        override val name: NounPhrase,
-        override val pronouns: Pronouns,
+class Creature(
+        id: Int,
+        name: NounPhrase,
+        pronouns: Pronouns,
         var location: Location
-): NamedEntity {
+): NamedEntity(id, name, pronouns) {
 
     val inventory: Inventory<Item> = Inventory()
 

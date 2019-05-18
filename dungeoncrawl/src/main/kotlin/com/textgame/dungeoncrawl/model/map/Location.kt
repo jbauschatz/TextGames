@@ -7,11 +7,12 @@ import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.Pronouns
 
-data class Location(
-        override val name: NounPhrase,
-        override val pronouns: Pronouns,
+class Location(
+        id: Int,
+        name: NounPhrase,
+        pronouns: Pronouns,
         val description: String
-): NamedEntity {
+): NamedEntity(id, name, pronouns) {
 
     /**
      * Map from directions (ie "north", "up") to the corresponding [Location]
