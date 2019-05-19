@@ -1,6 +1,6 @@
 package com.textgame.dungeoncrawl.event
 
-import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 

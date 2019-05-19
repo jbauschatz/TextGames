@@ -1,6 +1,6 @@
 package com.textgame.dungeoncrawl.model.map
 
-import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.Inventory
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.engine.model.NamedEntity

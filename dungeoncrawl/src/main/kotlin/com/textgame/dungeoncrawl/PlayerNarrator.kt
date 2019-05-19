@@ -1,7 +1,7 @@
 package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.event.*
-import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter

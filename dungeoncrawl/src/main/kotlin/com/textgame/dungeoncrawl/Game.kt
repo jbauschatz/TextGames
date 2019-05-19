@@ -2,11 +2,11 @@ package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.event.*
-import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.Inventory
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
-import com.textgame.dungeoncrawl.model.map.MapGenerator
+import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateSmallMap
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
@@ -15,30 +15,43 @@ import com.textgame.engine.model.nounphrase.ProperNoun
 
 class Game {
 
-    private val listeners: MutableList<GameEventListener> = mutableListOf()
+    private val creatureListeners: MutableMap<Creature, GameEventListener> = mutableMapOf()
+
+    /**
+     * All creatures which are currently alive in the game world
+     */
+    private val creatures: MutableList<Creature> = mutableListOf()
 
     /**
      * Begins a new game and starts the game-loop
      */
     fun begin() {
+        val map = generateSmallMap()
+
         // Initialize the Player with their starting location and equipment
-        val startingLocation = MapGenerator.generateSmallMap()
-        val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, startingLocation)
+        val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, map.playerStartingLocation, CommandParser)
         player.inventory.add(Item(nextId(), Adjective("small", Noun("key"))))
         player.inventory.add(Item(nextId(), Adjective("rusty", Noun("dagger"))))
+        map.playerStartingLocation.creatures.add(player)
 
-        // Configure input and output for the Player
-        listeners.add(PlayerNarrator(player))
-        val playerParser = CommandParser(player)
+        // Assemble all Creatures existing on the Map
+        map.locations.forEach {
+            creatures.addAll(it.creatures.members())
+        }
+
+        // Configure narration for the Player
+        creatureListeners[player] = PlayerNarrator(player)
 
         // Opening game narration
         System.out.println("Welcome to the game." + System.lineSeparator())
-        execute(LookCommand(player, startingLocation))
+        execute(LookCommand(player, player.location))
 
         // Begin the game loop
         while (true) {
-            val command = playerParser.readCommand()
-            execute(command)
+            creatures.forEach {
+                val command = it.strategy.act(it)
+                execute(command)
+            }
         }
     }
 
@@ -61,8 +74,13 @@ class Game {
     /**
      * Dispatches the [GameEvent] to all listeners
      */
-    private fun dispatchEvent(event: GameEvent) =
-            listeners.forEach { it.handleEvent(event) }
+    private fun dispatchEvent(event: GameEvent, vararg locations: Location) {
+        creatureListeners.keys.forEach {
+            if (it.location in locations) {
+                creatureListeners[it]!!.handleEvent(event)
+            }
+        }
+    }
 
     /**
      * Executes a [MoveCommand], by moving the appropriate Creature into its destination
@@ -78,17 +96,27 @@ class Game {
         originalLocation.creatures.remove(move.actor)
         newLocation.creatures.add(move.actor)
 
-        dispatchEvent(MoveEvent(move.actor, move.direction, originalLocation, newLocation))
+        dispatchEvent(
+                MoveEvent(move.actor, move.direction, originalLocation, newLocation),
+                originalLocation,
+                newLocation
+        )
     }
 
     private fun execute(look: LookCommand) =
-            dispatchEvent(LookEvent(look.actor, look.location))
+            dispatchEvent(
+                    LookEvent(look.actor, look.location),
+                    look.location
+            )
 
     /**
      * Executes an [InventoryCommand] by dispatching an [InventoryEvent] on the actor's behalf
      */
     private fun execute(inventory: InventoryCommand) =
-            dispatchEvent(InventoryEvent(inventory.actor))
+            dispatchEvent(
+                    InventoryEvent(inventory.actor),
+                    inventory.actor.location
+            )
 
     /**
      * Executes a [TakeItemCommand] by transferring the [Item] from the [Location]'s [Inventory] to the acting [Creature]'s
@@ -99,14 +127,20 @@ class Game {
         takeItem.location.inventory.remove(takeItem.item)
         takeItem.actor.inventory.add(takeItem.item)
 
-        dispatchEvent(TakeItemEvent(takeItem.actor, takeItem.item, takeItem.location))
+        dispatchEvent(
+                TakeItemEvent(takeItem.actor, takeItem.item, takeItem.location),
+                takeItem.location
+        )
     }
 
     /**
      * Executes a [WaitCommand] by dispatching a [WaitEvent] for the acting [Creature]
      */
     private fun execute(wait: WaitCommand) =
-            dispatchEvent(WaitEvent(wait.actor))
+            dispatchEvent(
+                    WaitEvent(wait.actor),
+                    wait.actor.location
+            )
 
     /**
      * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Inventory] to its [Creature.weapon] slot
@@ -119,11 +153,17 @@ class Game {
         equip.actor.inventory.remove(equip.item)
         equip.actor.weapon = equip.item
 
-        dispatchEvent(EquipItemEvent(equip.actor, equip.item))
+        dispatchEvent(
+                EquipItemEvent(equip.actor, equip.item),
+                equip.actor.location
+        )
     }
 
     private fun execute(attack: AttackCommand) {
         // TODO resolve the effects of combat
-        dispatchEvent(AttackEvent(attack.attacker, attack.defender, attack.weapon))
+        dispatchEvent(
+                AttackEvent(attack.attacker, attack.defender, attack.weapon),
+                attack.attacker.location
+        )
     }
 }

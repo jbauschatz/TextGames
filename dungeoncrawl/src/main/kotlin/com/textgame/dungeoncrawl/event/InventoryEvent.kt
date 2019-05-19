@@ -1,6 +1,6 @@
 package com.textgame.dungeoncrawl.event
 
-import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.creature.Creature
 
 /**
  * [GameEvent] which indicates a [Creature] checked their inventory

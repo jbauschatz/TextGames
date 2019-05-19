@@ -1,21 +1,23 @@
 package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.*
-import com.textgame.dungeoncrawl.model.Creature
+import com.textgame.dungeoncrawl.model.creature.Creature
+import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
+import enemies
 import java.util.*
 
 /**
  * Parses command line input into valid [GameCommand] instances, relative to a given [Creature] designated as the Player
  */
-class CommandParser(private val player: Creature) {
+object CommandParser: CreatureStrategy {
 
     private val scanner = Scanner(System.`in`)
 
     /**
      * Reads input from the user until a well-formed command was entered.
      */
-    fun readCommand(): GameCommand {
+    override fun act(creature: Creature): GameCommand {
         while (true) {
             System.out.print("> ")
             val input = scanner.nextLine()
@@ -23,13 +25,13 @@ class CommandParser(private val player: Creature) {
             if (input.isNotEmpty()) {
                 val words = input.split(" ")
                 val command = when (words[0]) {
-                    "go", "move" -> parseMove(words)
-                    "items", "inventory" -> parseInventory()
-                    "get", "take" -> parseTakeItem(words)
-                    "look" -> LookCommand(player, player.location)
-                    "wait" -> WaitCommand(player)
-                    "equip" -> parseEquipItem(words)
-                    "attack" -> parseAttack(words)
+                    "go", "move" -> parseMove(creature, words)
+                    "items", "inventory" -> parseInventory(creature)
+                    "get", "take" -> parseTakeItem(creature, words)
+                    "look" -> LookCommand(creature, creature.location)
+                    "wait" -> WaitCommand(creature)
+                    "equip" -> parseEquipItem(creature, words)
+                    "attack" -> parseAttack(creature, words)
                     else -> {
                         narrate("Invalid command.")
                         null
@@ -48,34 +50,34 @@ class CommandParser(private val player: Creature) {
      *
      * If the move is not a valid direction, prints an error message and returns null.
      */
-    private fun parseMove(words: List<String>): MoveCommand? {
+    private fun parseMove(creature: Creature, words: List<String>): MoveCommand? {
         if (words.size == 1) {
             narrate("You must input a direction.")
             return null
         }
         val direction = words[1]
-        val allDirections = player.location.doors.keys
+        val allDirections = creature.location.doors.keys
         for (cardinalDirection in allDirections) {
             val cardinalDirectionName = NounPhraseFormatter.format(cardinalDirection.name)
             if (direction.toLowerCase() == cardinalDirectionName.toLowerCase())
-                return MoveCommand(player, cardinalDirection)
+                return MoveCommand(creature, cardinalDirection)
         }
 
         narrate("You cannot go that way.")
         return null
     }
 
-    private fun parseInventory() =
-            InventoryCommand(player)
+    private fun parseInventory(creature: Creature) =
+            InventoryCommand(creature)
 
-    private fun parseTakeItem(words: List<String>): TakeItemCommand? {
+    private fun parseTakeItem(creature: Creature, words: List<String>): TakeItemCommand? {
         if (words.size == 1) {
             narrate("Specify the name of an item to take.")
             return null
         }
 
         val name = parseDirectObject(words)
-        val itemsByName = player.location.inventory.findByName(name)
+        val itemsByName = creature.location.inventory.findByName(name)
 
         return when {
             itemsByName.isEmpty() -> {
@@ -88,18 +90,18 @@ class CommandParser(private val player: Creature) {
             }
             else -> {
                 val item = itemsByName[0]
-                TakeItemCommand(player, item, player.location)
+                TakeItemCommand(creature, item, creature.location)
             }
         }
     }
 
-    private fun parseEquipItem(words: List<String>): EquipItemCommand? {
+    private fun parseEquipItem(creature: Creature, words: List<String>): EquipItemCommand? {
         if (words.size == 1) {
             narrate("Specify the name of an item you carry to equip.")
         }
 
         val name = parseDirectObject(words)
-        val itemsByName = player.inventory.findByName(name)
+        val itemsByName = creature.inventory.findByName(name)
 
         if (itemsByName.isEmpty()) {
             narrate("You don't carry anything by that name.")
@@ -109,13 +111,12 @@ class CommandParser(private val player: Creature) {
             narrate("You carry multiple items by that name. Try being more specific.")
             null
         } else {
-            EquipItemCommand(player, itemsByName[0])
+            EquipItemCommand(creature, itemsByName[0])
         }
     }
 
-    private fun parseAttack(words: List<String>): AttackCommand? {
-        val allEnemiesInLocation = player.location.creatures.members().filter { it != player }
-        // TODO filter this list to enemies of the Player
+    private fun parseAttack(creature: Creature, words: List<String>): AttackCommand? {
+        val allEnemiesInLocation = creature.enemies()
 
         if (allEnemiesInLocation.isEmpty()) {
             narrate("There are no enemies here to attack.")
@@ -129,7 +130,7 @@ class CommandParser(private val player: Creature) {
         }
 
         val enemyName = parseDirectObject(words)
-        val namedEnemies = player.location.creatures.findByName(enemyName)
+        val namedEnemies = creature.location.creatures.findByName(enemyName)
         // TODO filter this list to enemies of the Player
 
         return when {
@@ -141,7 +142,7 @@ class CommandParser(private val player: Creature) {
                 narrate("There are multiple enemies here by that name. Try being more specific.")
                 null
             }
-            else -> AttackCommand(player, namedEnemies[0], player.weapon)
+            else -> AttackCommand(creature, namedEnemies[0], creature.weapon)
         }
     }
 
