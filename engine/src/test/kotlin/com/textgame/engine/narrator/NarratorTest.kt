@@ -3,6 +3,7 @@ package com.textgame.engine.narrator
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.ProperNoun
+import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.test.TestNamedEntity
 import org.hamcrest.MatcherAssert.assertThat
@@ -142,6 +143,60 @@ class NarratorTest {
 
         // EXPECT the Subject and Direct Object to use the specified pronouns, and the DO to be reflexive
         assertThat(string, equalTo("You hurt yourself."))
+    }
+
+    @Test
+    fun writeSentence_prepositionalPhrase() {
+        // GIVEN a Sentence with a Subject, Object, and Prepositional Phrase
+        val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
+        val objectOfPreposition = TestNamedEntity(3, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+
+        val sentence = SimpleSentence(
+                subject,
+                "gives",
+                directObject,
+                PrepositionalPhrase("to", objectOfPreposition)
+        )
+
+        // WHEN writing the sentence
+        val string = narrator.writeSentence(sentence)
+
+        // EXPECT the prepositional phrase to be included at the end of the sentence
+        assertThat(string, equalTo("A dog gives a ball to Jack."))
+        assertThat(
+                "Object of Preposition should be in narrative context",
+                narrativeContext.isKnownEntity(objectOfPreposition),
+                equalTo(true)
+        )
+    }
+
+    @Test
+    fun writeSentence_prepositionalPhrase_override() {
+        // GIVEN a Sentence with a Subject, Object, and Prepositional Phrase whose subject has overridden pronouns
+        val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
+        val objectOfPreposition = TestNamedEntity(3, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+
+        narrator.overridePronouns(objectOfPreposition, Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+
+        val sentence = SimpleSentence(
+                subject,
+                "gives",
+                directObject,
+                PrepositionalPhrase("to", objectOfPreposition)
+        )
+
+        // WHEN writing the sentence
+        val string = narrator.writeSentence(sentence)
+
+        // EXPECT the object of the preposition to be referred to by the specified pronoun
+        assertThat(string, equalTo("A dog gives a ball to her."))
+        assertThat(
+                "Object of Preposition should be in narrative context",
+                narrativeContext.isKnownEntity(objectOfPreposition),
+                equalTo(true)
+        )
     }
 
 }

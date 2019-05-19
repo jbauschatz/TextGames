@@ -28,7 +28,16 @@ class Narrator(
             val directObjectName = referToEntity(sentence.directObject, sentence.subject, Case.ACCUSATIVE)
 
             builder.append(" ")
-                    .append(NounPhraseFormatter.format(directObjectName, false))
+                    .append(NounPhraseFormatter.format(directObjectName))
+        }
+
+        // Include the Prepositional Phrase (if present)
+        sentence.prepositionalPhrase?.let {
+            val objectOfPrepositionName = referToEntity(sentence.prepositionalPhrase.objectOfPreposition, sentence.subject, Case.ACCUSATIVE)
+            builder.append(" ")
+                    .append(sentence.prepositionalPhrase.preposition)
+                    .append(" ")
+                    .append(NounPhraseFormatter.format(objectOfPrepositionName))
         }
 
         // Apply punctuation at the end of the sentence

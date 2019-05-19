@@ -4,12 +4,12 @@ import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.Pronouns
 
 /**
- * Base class for any distinct game element that can be identified by name
+ * Base class for any distinct entity that can be identified by name
  */
 abstract class NamedEntity(
 
         /**
-         * Id which uniquely identifies this entity within the game world
+         * Id which uniquely identifies this entity
          */
         val id: Int,
 

@@ -6,6 +6,7 @@ import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.nounphrase.Pronouns
+import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.narrator.NarrativeContext
 import com.textgame.engine.narrator.Narrator
@@ -96,7 +97,14 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
 
     private fun handleAttack(event: AttackEvent) {
         val verb = if (event.attacker == player) "attack" else "attacks"
-        narrate(SimpleSentence(event.attacker, verb, event.defender))
+
+        if (event.weapon != null) {
+            // Armed attack
+            narrate(SimpleSentence(event.attacker, verb, event.defender, PrepositionalPhrase("with", event.weapon)))
+        } else {
+            // Unarmed attack
+            narrate(SimpleSentence(event.attacker, verb, event.defender))
+        }
     }
 
     private fun describeLocation(location: Location) {
