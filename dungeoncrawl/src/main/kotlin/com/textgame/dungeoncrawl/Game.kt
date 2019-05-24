@@ -156,8 +156,7 @@ class Game {
         equip.actor.weapon = equip.item
 
         dispatchEvent(
-                EquipItemitems
-                        Event(equip.actor, equip.item),
+                EquipItemEvent(equip.actor, equip.item),
                 equip.actor.location
         )
     }
