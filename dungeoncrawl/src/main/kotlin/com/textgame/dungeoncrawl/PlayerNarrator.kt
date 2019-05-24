@@ -3,6 +3,8 @@ package com.textgame.dungeoncrawl
 import com.textgame.dungeoncrawl.event.*
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.map.Location
+import com.textgame.dungeoncrawl.model.sameEntity
+import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.nounphrase.Pronouns
@@ -74,29 +76,29 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
     }
 
     private fun handleMove(event: MoveEvent) {
-        if (event.actor == player) {
+        if (sameEntity(player, event.actor)) {
             narrate(SimpleSentence(player, "go", event.direction))
             describeLocation(event.toLocation)
         }
     }
 
     private fun handleTakeItem(event: TakeItemEvent) {
-        val verb = if (event.actor == player) "take" else "takes"
+        val verb = if (sameEntity(player, event.actor)) "take" else "takes"
         narrate(SimpleSentence(event.actor, verb, event.item))
     }
 
     private fun handleWait(event: WaitEvent) {
-        val verb = if (event.actor == player) "wait" else "waits"
+        val verb = if (sameEntity(player, event.actor)) "wait" else "waits"
         narrate(SimpleSentence(event.actor, verb))
     }
 
     private fun handleEquipItem(event: EquipItemEvent) {
-        val verb = if (event.actor == player) "equip" else "equips"
+        val verb = if (sameEntity(player, event.actor)) "equip" else "equips"
         narrate(SimpleSentence(event.actor, verb, event.item))
     }
 
     private fun handleAttack(event: AttackEvent) {
-        val verb = if (event.attacker == player) "attack" else "attacks"
+        val verb = if (sameEntity(player, event.attacker)) "attack" else "attacks"
 
         if (event.weapon != null) {
             // Armed attack
@@ -107,12 +109,12 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
         }
     }
 
-    private fun describeLocation(location: Location) {
+    private fun describeLocation(location: LocationView) {
         narrate(NounPhraseFormatter.format(location.name, titleCase = true))
         narrate(location.description)
 
         // List other creatures occupying the room
-        val otherCreatures = location.creatures.members().filter { it != player }
+        val otherCreatures = location.creatures.filter { !sameEntity(it, player) }
         if (otherCreatures.isNotEmpty()) {
             val otherCreatureNames = otherCreatures.map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You see " + FormattingUtil.formatList(otherCreatureNames) + ".")
@@ -122,18 +124,18 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
         }
 
         // List items in the location
-        if (location.inventory.members().isEmpty()) {
+        if (location.items.isEmpty()) {
             narrate("You don't see anything of value here.")
         } else {
-            val itemNames = location.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
+            val itemNames = location.items.map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
 
             // Any named Items should be known in the Narrative Context
-            location.inventory.members().forEach { narrator.narrativeContext.addKnownEntity(it) }
+            location.items.forEach { narrator.narrativeContext.addKnownEntity(it) }
         }
 
         // List exits
-        val formattedDoors = location.doors.keys.map { NounPhraseFormatter.format(it.name) }
+        val formattedDoors = location.doors.map { NounPhraseFormatter.format(it.name) }
         narrate("You can go " + FormattingUtil.formatList(formattedDoors) + ".")
     }
 

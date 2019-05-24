@@ -7,6 +7,8 @@ import com.textgame.dungeoncrawl.model.Inventory
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateSmallMap
+import com.textgame.dungeoncrawl.view.CreatureView
+import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
@@ -154,15 +156,22 @@ class Game {
         equip.actor.weapon = equip.item
 
         dispatchEvent(
-                EquipItemEvent(equip.actor, equip.item),
+                EquipItemitems
+                        Event(equip.actor, equip.item),
                 equip.actor.location
         )
     }
 
+    /**
+     * Executes an [AttackCommand] by resolving the effects of the attack.
+     *
+     * Dispatches an [AttackEvent] within the [Location] of the attack.
+     */
     private fun execute(attack: AttackCommand) {
         // TODO resolve the effects of combat
+        val weaponView = if (attack.weapon != null) { ItemView(attack.weapon) } else { null }
         dispatchEvent(
-                AttackEvent(attack.attacker, attack.defender, attack.weapon),
+                AttackEvent(CreatureView(attack.attacker), CreatureView(attack.defender), weaponView),
                 attack.attacker.location
         )
     }
