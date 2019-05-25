@@ -4,6 +4,7 @@ import com.textgame.dungeoncrawl.event.*
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.sameEntity
+import com.textgame.dungeoncrawl.output.GameOutput
 import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
@@ -18,17 +19,20 @@ import java.lang.IllegalArgumentException
  * Narrates any [GameEvent] which the Player directly performed, or can observe
  * (typically because the event occurred within their current [Location])
  */
-class PlayerNarrator(private val player: Creature): GameEventListener {
+class PlayerNarrator(
+        private val player: Creature,
+        private val out: GameOutput
+): GameEventListener {
 
-    private val narrator = SentenceRealizer(NarrativeContext())
+    private val realizer = SentenceRealizer(NarrativeContext())
 
     init {
         // Configure second person narration for the Player
-        narrator.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
+        realizer.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
 
         // Player's starting items should be known objects in the Narrative Frame
         player.inventory.members().forEach {
-            narrator.narrativeContext.addKnownEntity(it)
+            realizer.narrativeContext.addKnownEntity(it)
         }
     }
 
@@ -120,7 +124,7 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
             narrate("You see " + FormattingUtil.formatList(otherCreatureNames) + ".")
 
             // Any named Creatures should be known in the Narrative Context
-            otherCreatures.forEach { narrator.narrativeContext.addKnownEntity(it) }
+            otherCreatures.forEach { realizer.narrativeContext.addKnownEntity(it) }
         }
 
         // List items in the location
@@ -131,7 +135,7 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
             narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
 
             // Any named Items should be known in the Narrative Context
-            location.items.forEach { narrator.narrativeContext.addKnownEntity(it) }
+            location.items.forEach { realizer.narrativeContext.addKnownEntity(it) }
         }
 
         // List exits
@@ -143,12 +147,13 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
      * Displays the given [SimpleSentence] to the user, as formatted by the configured [SentenceRealizer]
      */
     private fun narrate(sentence: SimpleSentence) =
-            narrate(narrator.realize(sentence))
+            out.println(realizer.realize(sentence))
 
     /**
      * Displays the given string to the user following standard formatting.
      */
-    private fun narrate(string: String) =
-            System.out.println(string + System.lineSeparator())
+    private fun narrate(string: String) {
+        out.println(string)
+    }
 
 }
