@@ -11,18 +11,18 @@ import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class NarratorTest {
+class SentenceRealizerTest {
 
     private lateinit var narrativeContext: NarrativeContext
-    private lateinit var narrator: Narrator
+    private lateinit var sentenceRealizer: SentenceRealizer
 
     /**
-     * Initializes each test case with a new [Narrator] and an empty [NarrativeContext]
+     * Initializes each test case with a new [SentenceRealizer] and an empty [NarrativeContext]
      */
     @BeforeEach
     fun beforeEach() {
         narrativeContext = NarrativeContext()
-        narrator = Narrator(narrativeContext)
+        sentenceRealizer = SentenceRealizer(narrativeContext)
     }
 
     @Test
@@ -35,7 +35,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be referenced by their proper names
         assertThat(string, equalTo("Jack saw Jill."))
@@ -54,7 +54,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be indefinite, and now added to the Narrative Context
         assertThat(string, equalTo("A dog chased a ball."))
@@ -78,7 +78,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be definite
         assertThat(string, equalTo("The dog chased the ball."))
@@ -99,7 +99,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Direct Object to be the reflexive pronoun
         assertThat(string, equalTo("A girl hurt herself."))
@@ -111,7 +111,7 @@ class NarratorTest {
     fun writeSentence_pronounOverride() {
         // GIVEN a Sentence whose Subject has an overridden pronoun
         val subject = TestNamedEntity(1, Noun("boy"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
-        narrator.overridePronouns(subject, Pronouns.SECOND_PERSON_SINGULAR)
+        sentenceRealizer.overridePronouns(subject, Pronouns.SECOND_PERSON_SINGULAR)
 
         val sentence = SimpleSentence(
                 subject,
@@ -120,7 +120,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject to use the overridden pronouns
         assertThat(string, equalTo("You draw a sword."))
@@ -130,7 +130,7 @@ class NarratorTest {
     fun writeSentence_reflexiveWithOverride() {
         // GIVEN a Sentence whose Subject and Object are the same entity
         val subjectObject = TestNamedEntity(1, Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
-        narrator.overridePronouns(subjectObject, Pronouns.SECOND_PERSON_SINGULAR)
+        sentenceRealizer.overridePronouns(subjectObject, Pronouns.SECOND_PERSON_SINGULAR)
 
         val sentence = SimpleSentence(
                 subjectObject,
@@ -139,7 +139,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to use the specified pronouns, and the DO to be reflexive
         assertThat(string, equalTo("You hurt yourself."))
@@ -160,7 +160,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the prepositional phrase to be included at the end of the sentence
         assertThat(string, equalTo("A dog gives a ball to Jack."))
@@ -178,7 +178,7 @@ class NarratorTest {
         val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
         val objectOfPreposition = TestNamedEntity(3, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
 
-        narrator.overridePronouns(objectOfPreposition, Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        sentenceRealizer.overridePronouns(objectOfPreposition, Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
 
         val sentence = SimpleSentence(
                 subject,
@@ -188,7 +188,7 @@ class NarratorTest {
         )
 
         // WHEN writing the sentence
-        val string = narrator.writeSentence(sentence)
+        val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the object of the preposition to be referred to by the specified pronoun
         assertThat(string, equalTo("A dog gives a ball to her."))

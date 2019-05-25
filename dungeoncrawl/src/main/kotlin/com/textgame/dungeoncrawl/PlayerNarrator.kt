@@ -11,7 +11,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.narrator.NarrativeContext
-import com.textgame.engine.narrator.Narrator
+import com.textgame.engine.narrator.SentenceRealizer
 import java.lang.IllegalArgumentException
 
 /**
@@ -20,7 +20,7 @@ import java.lang.IllegalArgumentException
  */
 class PlayerNarrator(private val player: Creature): GameEventListener {
 
-    private val narrator = Narrator(NarrativeContext())
+    private val narrator = SentenceRealizer(NarrativeContext())
 
     init {
         // Configure second person narration for the Player
@@ -140,10 +140,10 @@ class PlayerNarrator(private val player: Creature): GameEventListener {
     }
 
     /**
-     * Displays the given [SimpleSentence] to the user, as formatted by the configured [Narrator]
+     * Displays the given [SimpleSentence] to the user, as formatted by the configured [SentenceRealizer]
      */
     private fun narrate(sentence: SimpleSentence) =
-            narrate(narrator.writeSentence(sentence))
+            narrate(narrator.realize(sentence))
 
     /**
      * Displays the given string to the user following standard formatting.

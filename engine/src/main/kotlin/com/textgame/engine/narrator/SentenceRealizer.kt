@@ -8,13 +8,40 @@ import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.sentence.SimpleSentence
 import java.lang.StringBuilder
 
-class Narrator(
-       val narrativeContext: NarrativeContext
+/**
+ * Class which "realizes" a [SimpleSentence], ie produces a final human-readable Surface Form representing that sentence.
+ *
+ * Since a [SimpleSentence] is only an abstract syntax structure, realizing the sentence includes simply putting the words
+ * in the correct order, and introducing grammatical/linking words where appropriate.
+ *
+ * This also includes an element of pragmatically naming each entity referenced within the sentence. When an unknown entity
+ * is referenced for the first time, it should be indefinite. Any known entity can be referred to definitely.
+ *
+ * Realized sentences should also use proper punctuation, which includes careful use of commas.
+ */
+class SentenceRealizer(
+
+        /**
+         * [NarrativeContext] for the narration in which these sentences are being used. Consumers can mutate this instance
+         * to influence how [NamedEntity]s are named during sentence realization.
+         */
+        val narrativeContext: NarrativeContext
 ) {
 
+    /**
+     * Maps [NamedEntity]s to certain [Pronouns] that should always be used when naming those entities.
+     *
+     * This allows sentences to be realized in first or second person for a particular entity, for example a protagonist
+     * or player character.
+     */
     private val pronounOverride: MutableMap<NamedEntity, Pronouns> = HashMap()
 
-    fun writeSentence(sentence: SimpleSentence): String {
+    /**
+     * Realizes a [SimpleSentence] by producing a proper English String representation.
+     *
+     * This will include proper punctuation and word order, and meaningful, unambiguous names for all entities.
+     */
+    fun realize(sentence: SimpleSentence): String {
         val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE)
 
         // Start with basic Subject/Verb
