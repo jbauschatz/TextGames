@@ -31,7 +31,12 @@ class MapGenerator {
                     THIRD_PERSON_SINGULAR_NEUTER,
                     "Your footsteps echo faintly down the long stone corridor."
             )
-            generateEnemy(Adjective("prison", Noun("guard")), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE, hallway)
+            generateEnemy(
+                    Adjective("prison", Noun("guard")),
+                    Pronouns.THIRD_PERSON_SINGULAR_MASCULINE,
+                    hallway,
+                    listOf(Item(nextId(), Adjective("heavy", Noun("cudgel"))))
+            )
             hallway.inventory.add(Item(nextId(), Adjective("gold", Noun("coin"))))
             hallway.inventory.add(Item(nextId(), Adjective("iron", Noun("coin"))))
 
@@ -45,7 +50,12 @@ class MapGenerator {
                     THIRD_PERSON_SINGULAR_NEUTER,
                     "Water drips steadily from the ceiling and splashes into the ankle-deep water of this cell."
             )
-            generateEnemy(Noun("skeleton"), THIRD_PERSON_SINGULAR_NEUTER, floodedCell)
+            generateEnemy(
+                    Noun("skeleton"),
+                    THIRD_PERSON_SINGULAR_NEUTER,
+                    floodedCell,
+                    listOf(Item(nextId(), Adjective("bone", Noun("shiv"))))
+            )
             floodedCell.doors[CardinalDirection.SOUTH] = hallway
             hallway.doors[CardinalDirection.NORTH] = floodedCell
 
@@ -55,7 +65,7 @@ class MapGenerator {
             )
         }
 
-        private fun generateEnemy(name: NounPhrase, pronouns: Pronouns, location: Location) {
+        private fun generateEnemy(name: NounPhrase, pronouns: Pronouns, location: Location, equipment: List<Item> = listOf()) {
             val enemy = Creature(
                     nextId(),
                     name,
@@ -63,6 +73,8 @@ class MapGenerator {
                     location,
                     GuardStrategy
             )
+            equipment.forEach { enemy.inventory.add(it) }
+
             location.creatures.add(enemy)
         }
     }

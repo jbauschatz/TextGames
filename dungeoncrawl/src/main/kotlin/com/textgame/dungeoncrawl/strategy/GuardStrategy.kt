@@ -1,6 +1,7 @@
 package com.textgame.dungeoncrawl.strategy
 
 import com.textgame.dungeoncrawl.command.AttackCommand
+import com.textgame.dungeoncrawl.command.EquipItemCommand
 import com.textgame.dungeoncrawl.command.GameCommand
 import com.textgame.dungeoncrawl.command.WaitCommand
 import com.textgame.dungeoncrawl.model.creature.Creature
@@ -22,12 +23,17 @@ object GuardStrategy: CreatureStrategy {
         val target = enemies[0]
 
         if (creature.weapon == null) {
-            // TODO identify a weapon in inventory and equip it
-
-            // Execute an unarmed attack
-            return AttackCommand(creature, target, null)
+            if (creature.inventory.members().isNotEmpty()) {
+                // Pick an arbitrary item to equip
+                val weapon = creature.inventory.members()[0]
+                return EquipItemCommand(creature, weapon)
+            } else {
+                // Execute an unarmed attack
+                return AttackCommand(creature, target, null)
+            }
         }
 
+        // Attack the target with the equipped weapon
         return AttackCommand(creature, target, creature.weapon)
     }
 }
