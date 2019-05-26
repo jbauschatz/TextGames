@@ -8,6 +8,7 @@ import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateSmallMap
 import com.textgame.dungeoncrawl.output.ConsoleOutput
+import com.textgame.dungeoncrawl.strategy.IdleStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.engine.model.NamedEntity.Companion.nextId
@@ -32,7 +33,7 @@ class Game {
         val map = generateSmallMap()
 
         // Initialize the Player with their starting location and equipment
-        val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, map.playerStartingLocation, CommandParser)
+        val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, map.playerStartingLocation, IdleStrategy)
         player.inventory.add(Item(nextId(), Adjective("small", Noun("key"))))
         player.inventory.add(Item(nextId(), Adjective("rusty", Noun("dagger"))))
         map.playerStartingLocation.creatures.add(player)
@@ -43,7 +44,8 @@ class Game {
         }
 
         // Configure narration for the Player
-        creatureListeners[player] = PlayerNarrator(player, ConsoleOutput())
+        val playerInputOutput = PlayerController(player, ConsoleOutput())
+        creatureListeners[player] = playerInputOutput
 
         // Opening game narration
         System.out.println("Welcome to the game." + System.lineSeparator())
