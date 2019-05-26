@@ -56,6 +56,12 @@ class MapGenerator {
                     floodedCell,
                     listOf(Item(nextId(), Adjective("bone", Noun("shiv"))))
             )
+            generateEnemy(
+                    Noun("zombie"),
+                    THIRD_PERSON_SINGULAR_NEUTER,
+                    floodedCell,
+                    listOf(Item(nextId(), Noun("rock")))
+            )
             floodedCell.doors[CardinalDirection.SOUTH] = hallway
             hallway.doors[CardinalDirection.NORTH] = floodedCell
 

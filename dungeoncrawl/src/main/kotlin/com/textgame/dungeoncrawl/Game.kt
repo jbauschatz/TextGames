@@ -2,8 +2,9 @@ package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.event.*
-import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.Inventory
+import com.textgame.dungeoncrawl.model.creature.ActionType
+import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateSmallMap
@@ -16,6 +17,10 @@ import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.ProperNoun
+import hasMoreActions
+import resetActions
+import spendAction
+import spendAllActions
 
 class Game {
 
@@ -54,8 +59,12 @@ class Game {
         // Begin the game loop
         while (true) {
             creatures.forEach {
-                val command = it.strategy.act(it)
-                execute(command)
+                it.resetActions()
+
+                while (it.hasMoreActions()) {
+                    val command = it.strategy.act(it)
+                    execute(command)
+                }
             }
         }
     }
@@ -93,6 +102,8 @@ class Game {
      * Dispatches a [MoveEvent] representing the change in state
      */
     private fun execute(move: MoveCommand) {
+        move.actor.spendAction(ActionType.MOVE)
+
         val originalLocation = move.actor.location
         val newLocation = originalLocation.doors[move.direction]!!
 
@@ -139,13 +150,18 @@ class Game {
     }
 
     /**
-     * Executes a [WaitCommand] by dispatching a [WaitEvent] for the acting [Creature]
+     * Executes a [WaitCommand] by expending all the acting [Creature]'s actions
+     *
+     * Dispatches a [WaitEvent] for the acting [Creature]
      */
-    private fun execute(wait: WaitCommand) =
-            dispatchEvent(
-                    WaitEvent(wait.actor),
-                    wait.actor.location
-            )
+    private fun execute(wait: WaitCommand) {
+        wait.actor.spendAllActions()
+
+        dispatchEvent(
+                WaitEvent(wait.actor),
+                wait.actor.location
+        )
+    }
 
     /**
      * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Inventory] to its [Creature.weapon] slot
@@ -170,6 +186,8 @@ class Game {
      * Dispatches an [AttackEvent] within the [Location] of the attack.
      */
     private fun execute(attack: AttackCommand) {
+        attack.attacker.spendAction(ActionType.ATTACK)
+
         // TODO resolve the effects of combat
         val weaponView = if (attack.weapon != null) { ItemView(attack.weapon) } else { null }
         dispatchEvent(

@@ -19,4 +19,6 @@ class Creature(
     val inventory: Inventory<Item> = Inventory()
 
     var weapon: Item? = null
+
+    val actionsAvailable: MutableMap<ActionType, Int> = mutableMapOf()
 }

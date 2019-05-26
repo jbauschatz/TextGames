@@ -128,8 +128,6 @@ class PlayerController(
     }
 
     private fun handleWait(event: WaitEvent) {
-        val verb = if (sameEntity(player, event.actor)) "wait" else "waits"
-        narrate(SimpleSentence(event.actor, verb))
     }
 
     private fun handleEquipItem(event: EquipItemEvent) {
