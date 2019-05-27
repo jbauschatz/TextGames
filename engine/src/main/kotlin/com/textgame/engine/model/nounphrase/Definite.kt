@@ -8,6 +8,9 @@ class Definite(val stem: NounPhrase): NounPhrase {
     override fun indefinite(): NounPhrase =
             Indefinite(stem)
 
+    override fun head() =
+            stem.head()
+
     override fun startsWithVowelSound(): Boolean =
             stem.startsWithVowelSound()
 }

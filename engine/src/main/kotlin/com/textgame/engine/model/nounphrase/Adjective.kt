@@ -16,6 +16,9 @@ class Adjective(
     override fun indefinite(): NounPhrase =
             Indefinite(this)
 
+    override fun head() =
+            stem.head()
+
     override fun startsWithVowelSound(): Boolean =
             startsWithVowelSound
 }

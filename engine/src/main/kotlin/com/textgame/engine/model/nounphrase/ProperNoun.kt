@@ -15,6 +15,9 @@ class ProperNoun constructor(
     override fun indefinite(): NounPhrase =
             this
 
+    override fun head() =
+            this
+
     override fun startsWithVowelSound(): Boolean =
             startsWithVowelSound
 

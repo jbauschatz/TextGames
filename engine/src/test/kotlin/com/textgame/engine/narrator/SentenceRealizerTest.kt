@@ -1,7 +1,9 @@
 package com.textgame.engine.narrator
 
-import com.textgame.engine.model.nounphrase.Pronouns
+import com.textgame.engine.model.Case
+import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
+import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.ProperNoun
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
@@ -26,7 +28,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_properSubjectAndObject() {
+    fun realize_properSubjectAndObject() {
         // GIVEN a Sentence whose Subject and Object are Proper Nouns
         val sentence = SimpleSentence(
                 TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
@@ -34,7 +36,7 @@ class SentenceRealizerTest {
                 TestNamedEntity(2, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be referenced by their proper names
@@ -42,7 +44,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_unknownNouns() {
+    fun realize_unknownNouns() {
         // GIVEN a Sentence whose Subject and Object are Nouns, and unknown in the Narrative context
         val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
         val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
@@ -53,7 +55,7 @@ class SentenceRealizerTest {
                 directObject
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be indefinite, and now added to the Narrative Context
@@ -63,7 +65,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_knownNouns() {
+    fun realize_knownNouns() {
         // GIVEN a Sentence whose Subject and Object are Nouns known in the NarrativeContext
         val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
         val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
@@ -77,7 +79,7 @@ class SentenceRealizerTest {
                 directObject
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be definite
@@ -88,7 +90,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_reflexive() {
+    fun realize_reflexive() {
         // GIVEN a Sentence whose Subject and Object are the same entity
         val subjectObject = TestNamedEntity(1, Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
 
@@ -98,7 +100,7 @@ class SentenceRealizerTest {
                 subjectObject
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Direct Object to be the reflexive pronoun
@@ -108,7 +110,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_pronounOverride() {
+    fun realize_pronounOverride() {
         // GIVEN a Sentence whose Subject has an overridden pronoun
         val subject = TestNamedEntity(1, Noun("boy"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
         sentenceRealizer.overridePronouns(subject, Pronouns.SECOND_PERSON_SINGULAR)
@@ -119,7 +121,7 @@ class SentenceRealizerTest {
                 TestNamedEntity(2, Noun("sword"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject to use the overridden pronouns
@@ -127,7 +129,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_reflexiveWithOverride() {
+    fun realize_reflexiveWithOverride() {
         // GIVEN a Sentence whose Subject and Object are the same entity
         val subjectObject = TestNamedEntity(1, Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
         sentenceRealizer.overridePronouns(subjectObject, Pronouns.SECOND_PERSON_SINGULAR)
@@ -138,7 +140,7 @@ class SentenceRealizerTest {
                 subjectObject
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to use the specified pronouns, and the DO to be reflexive
@@ -146,7 +148,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_prepositionalPhrase() {
+    fun realize_prepositionalPhrase() {
         // GIVEN a Sentence with a Subject, Object, and Prepositional Phrase
         val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
         val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
@@ -159,7 +161,7 @@ class SentenceRealizerTest {
                 PrepositionalPhrase("to", objectOfPreposition)
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the prepositional phrase to be included at the end of the sentence
@@ -172,7 +174,7 @@ class SentenceRealizerTest {
     }
 
     @Test
-    fun writeSentence_prepositionalPhrase_override() {
+    fun realize_prepositionalPhrase_override() {
         // GIVEN a Sentence with a Subject, Object, and Prepositional Phrase whose subject has overridden pronouns
         val subject = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
         val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
@@ -187,7 +189,7 @@ class SentenceRealizerTest {
                 PrepositionalPhrase("to", objectOfPreposition)
         )
 
-        // WHEN writing the sentence
+        // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the object of the preposition to be referred to by the specified pronoun
@@ -197,6 +199,28 @@ class SentenceRealizerTest {
                 narrativeContext.isKnownEntity(objectOfPreposition),
                 equalTo(true)
         )
+    }
+
+    @Test
+    fun realize_knownComplexNames() {
+        // GIVEN a Sentence whose Subject and Direct Object are known and have complex names
+        val subject = TestNamedEntity(1, Adjective("shaggy", Noun("dog")), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val directObject = TestNamedEntity(2, Adjective("red", Noun("ball")), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
+
+        narrativeContext.addKnownEntity(subject)
+        narrativeContext.addKnownEntity(directObject)
+
+        val sentence = SimpleSentence(
+                subject,
+                "chases",
+                directObject
+        )
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT the entities to be referred to by simplified, definite names
+        assertThat(string, equalTo("The dog chases the ball."))
     }
 
 }

@@ -97,7 +97,7 @@ class SentenceRealizer(
      * As a side-effect, the [NamedEntity] will be considered a known entity in the [NarrativeContext], which will change
      * how it is referred to in the future.
      */
-    protected fun referToEntity(namedEntity: NamedEntity, subjectOfSentence: NamedEntity, case: Case): NounPhrase {
+    private fun referToEntity(namedEntity: NamedEntity, subjectOfSentence: NamedEntity, case: Case): NounPhrase {
         val name: NounPhrase;
 
         if (case == Case.ACCUSATIVE && namedEntity == subjectOfSentence) {
@@ -110,7 +110,7 @@ class SentenceRealizer(
         } else {
             name = when {
                 pronounOverride.containsKey(namedEntity) -> pronounOverride[namedEntity]!!.get(case)
-                narrativeContext.isKnownEntity(namedEntity) -> namedEntity.name.definite()
+                narrativeContext.isKnownEntity(namedEntity) -> namedEntity.name.head().definite()
                 else -> namedEntity.name.indefinite()
             }
         }

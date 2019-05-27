@@ -10,6 +10,9 @@ class Pronoun(val value: String): NounPhrase {
     override fun indefinite(): NounPhrase =
             this
 
+    override fun head() =
+            this
+
     override fun startsWithVowelSound(): Boolean =
         WordUtil.startsWithVowel(value)
 }

@@ -8,6 +8,9 @@ class Indefinite(val stem: NounPhrase): NounPhrase {
     override fun indefinite(): NounPhrase =
             this
 
+    override fun head() =
+            stem.head()
+
     override fun startsWithVowelSound(): Boolean =
             stem.startsWithVowelSound()
 }

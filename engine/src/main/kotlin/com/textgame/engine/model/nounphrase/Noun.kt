@@ -15,6 +15,9 @@ class Noun(
     override fun indefinite(): NounPhrase =
             Indefinite(this)
 
+    override fun head() =
+            this
+
     override fun startsWithVowelSound(): Boolean =
             startsWithVowelSound
 }
