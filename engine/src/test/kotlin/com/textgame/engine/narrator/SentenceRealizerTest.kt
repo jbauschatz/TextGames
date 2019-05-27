@@ -1,12 +1,13 @@
 package com.textgame.engine.narrator
 
-import com.textgame.engine.model.Case
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.ProperNoun
 import com.textgame.engine.model.preposition.PrepositionalPhrase
+import com.textgame.engine.model.sentence.MultipleVerbalClauses
 import com.textgame.engine.model.sentence.SimpleSentence
+import com.textgame.engine.model.sentence.VerbalClause
 import com.textgame.engine.test.TestNamedEntity
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
@@ -221,6 +222,54 @@ class SentenceRealizerTest {
 
         // EXPECT the entities to be referred to by simplified, definite names
         assertThat(string, equalTo("The dog chases the ball."))
+    }
+
+    @Test
+    fun realize_twoVerbalClauses() {
+        // GIVEN a sentence with two verbal clauses
+        val jack = TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val hill = TestNamedEntity(2, Noun("hill"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+
+        val sentence = MultipleVerbalClauses(
+                jack,
+                listOf(
+                        VerbalClause("runs", prepositionalPhrase = PrepositionalPhrase("up", hill)),
+                        VerbalClause("fills", TestNamedEntity(3, Adjective("water", Noun("pail")), Pronouns.THIRD_PERSON_SINGULAR_NEUTER))
+                )
+        )
+        narrativeContext.addKnownEntity(hill)
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT the two sub-clauses to be joined together after the subject
+        assertThat(string, equalTo("Jack runs up the hill and fills a water pail."))
+    }
+
+    @Test
+    fun realize_threeVerbalClauses() {
+        // GIVEN a sentence with three verbal clauses
+        val jack = TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val hill = TestNamedEntity(2, Noun("hill"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+        val pail = TestNamedEntity(3, Noun("pail"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+        val water = TestNamedEntity(4, ProperNoun("water"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+        val jill = TestNamedEntity(5, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+
+        val sentence = MultipleVerbalClauses(
+                jack,
+                listOf(
+                        VerbalClause("runs", prepositionalPhrase = PrepositionalPhrase("up", hill)),
+                        VerbalClause("fills", pail, PrepositionalPhrase("with", water)),
+                        VerbalClause("gives", pail, PrepositionalPhrase("to", jill))
+                )
+        )
+        narrativeContext.addKnownEntity(hill)
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT the three sub-clauses to be joined together by commas after the subject
+        assertThat(string, equalTo("Jack runs up the hill, fills a pail with water, and gives the pail to Jill."))
     }
 
 }

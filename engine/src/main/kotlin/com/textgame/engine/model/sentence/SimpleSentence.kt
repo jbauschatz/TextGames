@@ -12,7 +12,7 @@ data class SimpleSentence(
         val directObject: NamedEntity?,
 
         val prepositionalPhrase: PrepositionalPhrase?
-) {
+): Sentence {
     constructor(subject: NamedEntity, verb: String): this(subject, verb, null, null)
 
     constructor(subject: NamedEntity, verb: String, directObject: NamedEntity): this(subject, verb, directObject, null)

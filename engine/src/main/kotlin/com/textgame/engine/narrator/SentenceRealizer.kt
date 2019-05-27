@@ -1,11 +1,16 @@
 package com.textgame.engine.narrator
 
+import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.Case
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
+import com.textgame.engine.model.sentence.MultipleVerbalClauses
+import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
+import com.textgame.engine.model.sentence.VerbalClause
+import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 
 /**
@@ -37,11 +42,18 @@ class SentenceRealizer(
     private val pronounOverride: MutableMap<NamedEntity, Pronouns> = HashMap()
 
     /**
-     * Realizes a [SimpleSentence] by producing a proper English String representation.
+     * Realizes a [Sentence] by producing a proper English String representation.
      *
      * This will include proper punctuation and word order, and meaningful, unambiguous names for all entities.
      */
-    fun realize(sentence: SimpleSentence): String {
+    fun realize(sentence: Sentence): String =
+            when(sentence) {
+                is SimpleSentence -> realizeSimpleSentence(sentence)
+                is MultipleVerbalClauses -> realizeMultipleVerbalClauses(sentence)
+                else -> throw IllegalArgumentException("Unrecognized Sentence type ${sentence.javaClass}")
+            }
+
+    private fun realizeSimpleSentence(sentence: SimpleSentence): String {
         val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE)
 
         // Start with basic Subject/Verb
@@ -69,6 +81,45 @@ class SentenceRealizer(
 
         // Apply punctuation at the end of the sentence
         builder.append(".")
+
+        return builder.toString()
+    }
+
+    private fun realizeMultipleVerbalClauses(sentence: MultipleVerbalClauses): String {
+        val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE)
+
+        // Start with basic Subject/Verb
+        val builder = StringBuilder()
+                .append(NounPhraseFormatter.format(subjectName, true))
+                .append(" ")
+
+        // Join each sub-clause to the main sentence
+        val clauseStrings = sentence.clauses.map { realizeVerbalClause(it, sentence.subject) }
+        builder.append(FormattingUtil.formatList(clauseStrings))
+                .append(".")
+
+        return builder.toString()
+    }
+
+    private fun realizeVerbalClause(clause: VerbalClause, subject: NamedEntity): String {
+        val builder = StringBuilder(clause.verb)
+
+        // Include the Direct Object (if present)
+        clause.directObject?.let {
+            val directObjectName = referToEntity(clause.directObject, subject, Case.ACCUSATIVE)
+
+            builder.append(" ")
+                    .append(NounPhraseFormatter.format(directObjectName))
+        }
+
+        // Include the Prepositional Phrase (if present)
+        clause.prepositionalPhrase?.let {
+            val objectOfPrepositionName = referToEntity(clause.prepositionalPhrase.objectOfPreposition, subject, Case.ACCUSATIVE)
+            builder.append(" ")
+                    .append(clause.prepositionalPhrase.preposition)
+                    .append(" ")
+                    .append(NounPhraseFormatter.format(objectOfPrepositionName))
+        }
 
         return builder.toString()
     }
