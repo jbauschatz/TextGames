@@ -1,6 +1,9 @@
 package com.textgame.engine.narrator
 
+import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
+import com.textgame.engine.transformer.MultipleVerbClauseTransformer
+import com.textgame.engine.transformer.SentenceTransformer
 import java.util.*
 
 /**
@@ -13,6 +16,10 @@ class Narrator(
     private val paragraphs: MutableList<Paragraph> = mutableListOf()
 
     private val recentSentences: MutableList<SimpleSentence> = mutableListOf()
+
+    private val transformers: List<SentenceTransformer> = listOf(
+            MultipleVerbClauseTransformer
+    )
 
     /**
      * Adds a [SimpleSentence] to the narrative.
@@ -33,8 +40,10 @@ class Narrator(
     fun flushParagraphs(): List<Paragraph> {
         // Build a paragraph containing any straggling sentences
         if (recentSentences.isNotEmpty()) {
+            val transformedSentences = transform(recentSentences)
+
             val lastParagraph = Paragraph(
-                    recentSentences.map { sentenceRealizer.realize(it) }
+                    transformedSentences.map { sentenceRealizer.realize(it) }
             )
             recentSentences.clear()
             paragraphs.add(lastParagraph)
@@ -44,5 +53,35 @@ class Narrator(
         paragraphs.clear()
 
         return returnParagraphs
+    }
+
+    private fun transform(sentences: MutableList<SimpleSentence>): List<Sentence> {
+        val transformedSentences = mutableListOf<Sentence>()
+
+        while(sentences.size > 1) {
+            val firstSentence = sentences.removeAt(0)
+            val nextSentence = sentences[0]
+
+            var didTransform = false
+
+            transformers.forEach {
+                if (!didTransform && it.canTransform(firstSentence, nextSentence)) {
+                    val transformed = it.transform(firstSentence, nextSentence)
+                    transformedSentences.add(transformed)
+                    sentences.removeAt(0)
+                    didTransform = true
+                }
+            }
+
+            if (!didTransform) {
+                // Add the first sentences, unaltered, to the processed list
+                transformedSentences.add(firstSentence)
+            }
+        }
+
+        if (sentences.isNotEmpty())
+            transformedSentences.addAll(sentences)
+
+        return transformedSentences
     }
 }

@@ -8,9 +8,15 @@ import com.textgame.engine.model.preposition.PrepositionalPhrase
  *
  * This is like a complete sentence except missing a Subject.
  */
-class VerbalClause(
+data class VerbalClause(
         val verb: String,
         val directObject: NamedEntity? = null,
         val prepositionalPhrase: PrepositionalPhrase? = null
 ) {
+
+    constructor(sentence: SimpleSentence): this(
+            sentence.verb,
+            sentence.directObject,
+            sentence.prepositionalPhrase
+    )
 }
