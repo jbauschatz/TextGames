@@ -3,6 +3,7 @@ package com.textgame.engine.narrator
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.Case
 import com.textgame.engine.model.NamedEntity
+import com.textgame.engine.model.Person
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
@@ -10,6 +11,7 @@ import com.textgame.engine.model.sentence.MultipleVerbalClauses
 import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.sentence.VerbalClause
+import com.textgame.engine.model.verb.Tense
 import java.lang.IllegalArgumentException
 import java.lang.StringBuilder
 
@@ -39,7 +41,11 @@ class SentenceRealizer(
      * This allows sentences to be realized in first or second person for a particular entity, for example a protagonist
      * or player character.
      */
-    private val pronounOverride: MutableMap<NamedEntity, Pronouns> = HashMap()
+    private val personOverride: MutableMap<NamedEntity, Person> = HashMap()
+
+    private val personPronouns: Map<Person, Pronouns> = mapOf(
+            Pair(Person.SECOND, Pronouns.SECOND_PERSON_SINGULAR)
+    )
 
     /**
      * Realizes a [Sentence] by producing a proper English String representation.
@@ -54,13 +60,17 @@ class SentenceRealizer(
             }
 
     private fun realizeSimpleSentence(sentence: SimpleSentence): String {
-        val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE)
-
-        // Start with basic Subject/Verb
         val builder = StringBuilder()
-                .append(NounPhraseFormatter.format(subjectName, true))
+
+        // Refer to the subject
+        val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE)
+        builder.append(NounPhraseFormatter.format(subjectName, true))
                 .append(" ")
-                .append(sentence.verb)
+
+        // Conjugate the verb given the subject's person
+        val person = personOverride[sentence.subject] ?: Person.THIRD
+        val conjugatedVerb = sentence.verb.conjugate(person, Tense.SIMPLE_PRESENT)
+        builder.append(conjugatedVerb)
 
         // Include the Direct Object (if present)
         sentence.directObject?.let {
@@ -102,7 +112,11 @@ class SentenceRealizer(
     }
 
     private fun realizeVerbalClause(clause: VerbalClause, subject: NamedEntity): String {
-        val builder = StringBuilder(clause.verb)
+        // Conjugate the verb given the subject's person
+        val person = personOverride[subject] ?: Person.THIRD
+        val conjugatedVerb = clause.verb.conjugate(person, Tense.SIMPLE_PRESENT)
+
+        val builder = StringBuilder(conjugatedVerb)
 
         // Include the Direct Object (if present)
         clause.directObject?.let {
@@ -130,8 +144,8 @@ class SentenceRealizer(
      * These pronouns will ALWAYS be used to refer to the entity, rather than its name or stated pronouns.
      * Use this typically to designate one entity as "you" or "I" throughout a narrative.
      */
-    fun overridePronouns(entity: NamedEntity, pronouns: Pronouns) {
-        pronounOverride[entity] = pronouns
+    fun overridePerson(entity: NamedEntity, person: Person) {
+        personOverride[entity] = person
     }
 
     /**
@@ -153,14 +167,16 @@ class SentenceRealizer(
 
         if (case == Case.ACCUSATIVE && namedEntity == subjectOfSentence) {
             // If the Subject and Direct Object are the same, refer to the Direct Object via reflexive pronoun
-            // This may be the entity's native pronoun, or one configured via [overridePronouns(NamedEntity, Pronouns)]
-            if (pronounOverride.containsKey(namedEntity))
-                name = pronounOverride[namedEntity]!!.reflexive
-            else
+            // This may be the entity's native pronoun, or one configured via [overridePerson(NamedEntity, Pronouns)]
+            if (personOverride.containsKey(namedEntity)) {
+                val pronouns = personPronouns[personOverride[namedEntity]]
+                name = pronouns!!.reflexive
+            } else {
                 name = namedEntity.pronouns.reflexive
+            }
         } else {
             name = when {
-                pronounOverride.containsKey(namedEntity) -> pronounOverride[namedEntity]!!.get(case)
+                personOverride.containsKey(namedEntity) -> personPronouns[personOverride[namedEntity]]!!.get(case)
                 narrativeContext.isKnownEntity(namedEntity) -> namedEntity.name.head().definite()
                 else -> namedEntity.name.indefinite()
             }

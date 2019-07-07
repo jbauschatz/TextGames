@@ -2,6 +2,7 @@ package com.textgame.engine.model.sentence
 
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.preposition.PrepositionalPhrase
+import com.textgame.engine.model.verb.Verb
 
 /**
  * Partial sentence including a Verb, and optional Direct Object and Prepositional Phrase.
@@ -9,7 +10,7 @@ import com.textgame.engine.model.preposition.PrepositionalPhrase
  * This is like a complete sentence except missing a Subject.
  */
 data class VerbalClause(
-        val verb: String,
+        val verb: Verb,
         val directObject: NamedEntity? = null,
         val prepositionalPhrase: PrepositionalPhrase? = null
 ) {

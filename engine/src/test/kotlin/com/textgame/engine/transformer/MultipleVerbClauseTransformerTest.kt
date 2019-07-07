@@ -8,6 +8,7 @@ import com.textgame.engine.model.sentence.MultipleVerbalClauses
 import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.sentence.VerbalClause
+import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.test.TestNamedEntity
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
@@ -21,13 +22,13 @@ class MultipleVerbClauseTransformerTest {
         // GIVEN two sentences with the same subject, but different verbs
         val sentenceA = SimpleSentence(
                 TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
-                "goes",
+                Verb("goes", "go"),
                 directObject = null,
                 prepositionalPhrase = PrepositionalPhrase("up", TestNamedEntity(2, Noun("hill"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER))
         )
         val sentenceB = SimpleSentence(
                 TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
-                "eats",
+                Verb("eats", "eat"),
                 TestNamedEntity(2, Noun("apple"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
         )
 
@@ -43,13 +44,13 @@ class MultipleVerbClauseTransformerTest {
         // GIVEN two sentences with different subjects
         val sentenceA = SimpleSentence(
                 TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
-                "goes",
+                Verb("goes", "go"),
                 directObject = null,
                 prepositionalPhrase = PrepositionalPhrase("up", TestNamedEntity(2, Noun("hill"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER))
         )
         val sentenceB = SimpleSentence(
                 TestNamedEntity(3, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE),
-                "eats",
+                Verb("eats", "eat"),
                 TestNamedEntity(2, Noun("apple"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
         )
 
@@ -69,25 +70,25 @@ class MultipleVerbClauseTransformerTest {
 
         val sentenceA = SimpleSentence(
                 jack,
-                "goes",
+                Verb("goes", "go"),
                 directObject = null,
                 prepositionalPhrase = PrepositionalPhrase("up", hill)
         )
         val sentenceB = SimpleSentence(
                 jack,
-                "eats",
+                Verb("eats", "eat"),
                 apple
         )
 
-        // WHEN checking if the transformer can transform
+        // WHEN applying the transformation
         val transformed = MultipleVerbClauseTransformer.transform(sentenceA, sentenceB)
 
-        // EXPECT the Transformer to apply
+        // EXPECT the a combined sentence to result
         val expected: Sentence = MultipleVerbalClauses(
                 jack,
                 listOf(
-                        VerbalClause("goes", prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbalClause("eats", apple)
+                        VerbalClause(Verb("goes", "go"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
+                        VerbalClause(Verb("eats", "eat"), apple)
                 )
         )
         assertThat(transformed, `is`(equalTo(expected)))

@@ -94,6 +94,11 @@ data class Pronouns(
          */
         val SECOND_PERSON_SINGULAR = Pronouns("you", "you", "yours", "your", "yourself")
 
+        /**
+         *
+         */
+        val FIRST_PERSON_SINGULAR = Pronouns("I", "I", "mine", "my", "myself")
+
     }
 
     fun get(case: Case) =

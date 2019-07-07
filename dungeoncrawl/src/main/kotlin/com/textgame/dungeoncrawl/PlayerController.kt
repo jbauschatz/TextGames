@@ -8,10 +8,11 @@ import com.textgame.dungeoncrawl.output.GameOutput
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
+import com.textgame.engine.model.Person
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
-import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
+import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.narrator.NarrativeContext
 import com.textgame.engine.narrator.Narrator
 import com.textgame.engine.narrator.SentenceRealizer
@@ -44,7 +45,7 @@ class PlayerController(
         player.strategy = this
 
         // Configure second person narration for the Player
-        realizer.overridePronouns(player, Pronouns.SECOND_PERSON_SINGULAR)
+        realizer.overridePerson(player, Person.SECOND)
 
         // Player's starting items should be known objects in the Narrative Frame
         player.inventory.members().forEach {
@@ -117,26 +118,27 @@ class PlayerController(
 
     private fun handleMove(event: MoveEvent) {
         if (sameEntity(player, event.actor)) {
-            narrate(SimpleSentence(player, "go", event.direction))
+            val go = Verb("goes", "go")
+            narrate(SimpleSentence(player, go, event.direction))
             describeLocation(event.toLocation)
         }
     }
 
     private fun handleTakeItem(event: TakeItemEvent) {
-        val verb = if (sameEntity(player, event.actor)) "take" else "takes"
-        narrate(SimpleSentence(event.actor, verb, event.item))
+        val take = Verb("takes", "take")
+        narrate(SimpleSentence(event.actor, take, event.item))
     }
 
     private fun handleWait(event: WaitEvent) {
     }
 
     private fun handleEquipItem(event: EquipItemEvent) {
-        val verb = if (sameEntity(player, event.actor)) "equip" else "equips"
-        narrate(SimpleSentence(event.actor, verb, event.item))
+        val equip = Verb("equips", "equip")
+        narrate(SimpleSentence(event.actor, equip, event.item))
     }
 
     private fun handleAttack(event: AttackEvent) {
-        val verb = if (sameEntity(player, event.attacker)) "attack" else "attacks"
+        val verb = Verb("attacks", "attack")
 
         if (event.weapon != null) {
             // Armed attack

@@ -1,5 +1,6 @@
 package com.textgame.engine.narrator
 
+import com.textgame.engine.model.Person
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns
@@ -8,6 +9,7 @@ import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.MultipleVerbalClauses
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.sentence.VerbalClause
+import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.test.TestNamedEntity
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
@@ -33,7 +35,7 @@ class SentenceRealizerTest {
         // GIVEN a Sentence whose Subject and Object are Proper Nouns
         val sentence = SimpleSentence(
                 TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
-                "saw",
+                Verb("sees", "see"),
                 TestNamedEntity(2, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
         )
 
@@ -41,7 +43,7 @@ class SentenceRealizerTest {
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be referenced by their proper names
-        assertThat(string, equalTo("Jack saw Jill."))
+        assertThat(string, equalTo("Jack sees Jill."))
     }
 
     @Test
@@ -52,7 +54,7 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                "chased",
+                Verb("chases", "chase"),
                 directObject
         )
 
@@ -60,7 +62,7 @@ class SentenceRealizerTest {
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be indefinite, and now added to the Narrative Context
-        assertThat(string, equalTo("A dog chased a ball."))
+        assertThat(string, equalTo("A dog chases a ball."))
         assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subject), equalTo(true))
         assertThat("DirectObject should be in narrative context", narrativeContext.isKnownEntity(directObject), equalTo(true))
     }
@@ -76,7 +78,7 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                "chased",
+                Verb("chases", "chase"),
                 directObject
         )
 
@@ -84,7 +86,7 @@ class SentenceRealizerTest {
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be definite
-        assertThat(string, equalTo("The dog chased the ball."))
+        assertThat(string, equalTo("The dog chases the ball."))
 
         assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subject), equalTo(true))
         assertThat("DirectObject should be in narrative context", narrativeContext.isKnownEntity(directObject), equalTo(true))
@@ -97,7 +99,7 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subjectObject,
-                "hurt",
+                Verb("hurts", "hurt"),
                 subjectObject
         )
 
@@ -105,7 +107,7 @@ class SentenceRealizerTest {
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the Direct Object to be the reflexive pronoun
-        assertThat(string, equalTo("A girl hurt herself."))
+        assertThat(string, equalTo("A girl hurts herself."))
 
         assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subjectObject), equalTo(true))
     }
@@ -114,11 +116,11 @@ class SentenceRealizerTest {
     fun realize_pronounOverride() {
         // GIVEN a Sentence whose Subject has an overridden pronoun
         val subject = TestNamedEntity(1, Noun("boy"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
-        sentenceRealizer.overridePronouns(subject, Pronouns.SECOND_PERSON_SINGULAR)
+        sentenceRealizer.overridePerson(subject, Person.SECOND)
 
         val sentence = SimpleSentence(
                 subject,
-                "draw",
+                Verb("draws", "draw"),
                 TestNamedEntity(2, Noun("sword"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
         )
 
@@ -133,11 +135,11 @@ class SentenceRealizerTest {
     fun realize_reflexiveWithOverride() {
         // GIVEN a Sentence whose Subject and Object are the same entity
         val subjectObject = TestNamedEntity(1, Noun("girl"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
-        sentenceRealizer.overridePronouns(subjectObject, Pronouns.SECOND_PERSON_SINGULAR)
+        sentenceRealizer.overridePerson(subjectObject, Person.SECOND)
 
         val sentence = SimpleSentence(
                 subjectObject,
-                "hurt",
+                Verb("hurts", "hurt"),
                 subjectObject
         )
 
@@ -157,7 +159,7 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                "gives",
+                Verb("gives", "give"),
                 directObject,
                 PrepositionalPhrase("to", objectOfPreposition)
         )
@@ -181,11 +183,11 @@ class SentenceRealizerTest {
         val directObject = TestNamedEntity(2, Noun("ball"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
         val objectOfPreposition = TestNamedEntity(3, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
 
-        sentenceRealizer.overridePronouns(objectOfPreposition, Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        sentenceRealizer.overridePerson(objectOfPreposition, Person.SECOND)
 
         val sentence = SimpleSentence(
                 subject,
-                "gives",
+                Verb("gives", "give"),
                 directObject,
                 PrepositionalPhrase("to", objectOfPreposition)
         )
@@ -194,7 +196,7 @@ class SentenceRealizerTest {
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the object of the preposition to be referred to by the specified pronoun
-        assertThat(string, equalTo("A dog gives a ball to her."))
+        assertThat(string, equalTo("A dog gives a ball to you."))
         assertThat(
                 "Object of Preposition should be in narrative context",
                 narrativeContext.isKnownEntity(objectOfPreposition),
@@ -213,7 +215,7 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                "chases",
+                Verb("chases", "chase"),
                 directObject
         )
 
@@ -233,8 +235,8 @@ class SentenceRealizerTest {
         val sentence = MultipleVerbalClauses(
                 jack,
                 listOf(
-                        VerbalClause("runs", prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbalClause("fills", TestNamedEntity(3, Adjective("water", Noun("pail")), Pronouns.THIRD_PERSON_SINGULAR_NEUTER))
+                        VerbalClause(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
+                        VerbalClause(Verb("fills", "fill"), TestNamedEntity(3, Adjective("water", Noun("pail")), Pronouns.THIRD_PERSON_SINGULAR_NEUTER))
                 )
         )
         narrativeContext.addKnownEntity(hill)
@@ -258,9 +260,9 @@ class SentenceRealizerTest {
         val sentence = MultipleVerbalClauses(
                 jack,
                 listOf(
-                        VerbalClause("runs", prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbalClause("fills", pail, PrepositionalPhrase("with", water)),
-                        VerbalClause("gives", pail, PrepositionalPhrase("to", jill))
+                        VerbalClause(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
+                        VerbalClause(Verb("fills", "fills"), pail, PrepositionalPhrase("with", water)),
+                        VerbalClause(Verb("gives", "give"), pail, PrepositionalPhrase("to", jill))
                 )
         )
         narrativeContext.addKnownEntity(hill)
