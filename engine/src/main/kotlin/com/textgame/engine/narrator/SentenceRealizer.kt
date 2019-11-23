@@ -48,6 +48,11 @@ class SentenceRealizer(
     )
 
     /**
+     * Records the entity that was referred to most recently, per pronoun.
+     */
+    private val recentPronouns: MutableMap<Pronouns, NamedEntity> = HashMap()
+
+    /**
      * Realizes a [Sentence] by producing a proper English String representation.
      *
      * This will include proper punctuation and word order, and meaningful, unambiguous names for all entities.
@@ -162,27 +167,36 @@ class SentenceRealizer(
      * As a side-effect, the [NamedEntity] will be considered a known entity in the [NarrativeContext], which will change
      * how it is referred to in the future.
      */
-    private fun referToEntity(namedEntity: NamedEntity, subjectOfSentence: NamedEntity, case: Case): NounPhrase {
+    private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case): NounPhrase {
         val name: NounPhrase;
 
-        if (case == Case.ACCUSATIVE && namedEntity == subjectOfSentence) {
+        if (case == Case.ACCUSATIVE && entity == subjectOfSentence) {
             // If the Subject and Direct Object are the same, refer to the Direct Object via reflexive pronoun
             // This may be the entity's native pronoun, or one configured via [overridePerson(NamedEntity, Pronouns)]
-            if (personOverride.containsKey(namedEntity)) {
-                val pronouns = personPronouns[personOverride[namedEntity]]
+            if (personOverride.containsKey(entity)) {
+                val pronouns = personPronouns[personOverride[entity]]
                 name = pronouns!!.reflexive
             } else {
-                name = namedEntity.pronouns.reflexive
+                name = entity.pronouns.reflexive
             }
+        } else if  (recentPronouns.containsKey(entity.pronouns) && recentPronouns[entity.pronouns] === entity) {
+            // If the most recent entity that was named, and that shares pronouns with this entity, IS this enity,
+            // then its pronouns can be used to unambiguously refer to it
+            name = entity.pronouns.get(case)
         } else {
             name = when {
-                personOverride.containsKey(namedEntity) -> personPronouns[personOverride[namedEntity]]!!.get(case)
-                narrativeContext.isKnownEntity(namedEntity) -> namedEntity.name.head().definite()
-                else -> namedEntity.name.indefinite()
+                personOverride.containsKey(entity) -> personPronouns[personOverride[entity]]!!.get(case)
+                narrativeContext.isKnownEntity(entity) -> entity.name.head().definite()
+                else -> entity.name.indefinite()
             }
         }
 
-        narrativeContext.addKnownEntity(namedEntity)
+        // Make the entity now known in the narrative context
+        narrativeContext.addKnownEntity(entity)
+
+        // Note the pronouns of the entity
+        recentPronouns[entity.pronouns] = entity
+
         return name
     }
 }

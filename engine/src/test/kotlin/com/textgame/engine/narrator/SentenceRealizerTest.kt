@@ -261,7 +261,7 @@ class SentenceRealizerTest {
                 jack,
                 listOf(
                         VerbalClause(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbalClause(Verb("fills", "fills"), pail, PrepositionalPhrase("with", water)),
+                        VerbalClause(Verb("fills", "fill"), pail, PrepositionalPhrase("with", water)),
                         VerbalClause(Verb("gives", "give"), pail, PrepositionalPhrase("to", jill))
                 )
         )
@@ -272,6 +272,27 @@ class SentenceRealizerTest {
 
         // EXPECT the three sub-clauses to be joined together by commas after the subject
         assertThat(string, equalTo("Jack runs up the hill, fills a pail with water, and gives the pail to Jill."))
+    }
+
+    @Test
+    fun realize_pronoun_unambiguous() {
+        // GIVEN a sentence which repeats the same object twice
+        val dog = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val bone = TestNamedEntity(2, Noun("bone"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+
+        val sentence = MultipleVerbalClauses(
+                dog,
+                listOf(
+                        VerbalClause(Verb("finds", "find"), bone),
+                        VerbalClause(Verb("eats", "eat"), bone)
+                )
+        )
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT bone to be referred to by its pronoun the second time
+        assertThat(string, equalTo("A dog finds a bone and eats it."))
     }
 
 }
