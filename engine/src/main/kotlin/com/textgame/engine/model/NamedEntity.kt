@@ -6,7 +6,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 /**
  * Base class for any distinct entity that can be identified by name
  */
-abstract class NamedEntity(
+open class NamedEntity(
 
         /**
          * Id which uniquely identifies this entity

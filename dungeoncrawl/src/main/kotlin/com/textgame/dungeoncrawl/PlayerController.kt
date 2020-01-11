@@ -3,13 +3,18 @@ package com.textgame.dungeoncrawl
 import com.textgame.dungeoncrawl.command.GameCommand
 import com.textgame.dungeoncrawl.event.*
 import com.textgame.dungeoncrawl.model.creature.Creature
+import com.textgame.dungeoncrawl.model.map.CardinalDirection.Companion.opposite
 import com.textgame.dungeoncrawl.model.sameEntity
 import com.textgame.dungeoncrawl.output.GameOutput
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
+import com.textgame.engine.model.NamedEntity
+import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.Person
+import com.textgame.engine.model.nounphrase.Definite
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
+import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.verb.Verb
@@ -134,6 +139,20 @@ class PlayerController(
             val go = Verb("goes", "go")
             narrate(SimpleSentence(player, go, event.direction))
             describeLocation(event.toLocation)
+        } else if (sameEntity(event.fromLocation, player.location)) {
+            // An entity left the Player's location
+            val exit = Verb("exits", "exit")
+            narrate(SimpleSentence(event.actor, exit, event.direction))
+        } else if (sameEntity(event.toLocation, player.location)) {
+            // An entity entered the Player's location
+            val enter = Verb("enters", "enter")
+            val properCardinalDirection = NamedEntity(
+                    nextId(),
+                    Definite(opposite(event.direction).name, true),
+                    Pronouns.THIRD_PERSON_SINGULAR_NEUTER
+            )
+            val prep = PrepositionalPhrase("from", properCardinalDirection)
+            narrate(SimpleSentence(event.actor, enter, null, prep))
         }
     }
 

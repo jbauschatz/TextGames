@@ -17,7 +17,7 @@ class Location(
     /**
      * Map from directions (ie "north", "up") to the corresponding [Location]
      */
-    val doors: MutableMap<NamedEntity, Location> = mutableMapOf()
+    val doors: MutableMap<CardinalDirection, Location> = mutableMapOf()
 
     /**
      * [Inventory] of [Item]s within the [Location]

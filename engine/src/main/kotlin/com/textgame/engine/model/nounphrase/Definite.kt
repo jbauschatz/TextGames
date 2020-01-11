@@ -1,12 +1,12 @@
 package com.textgame.engine.model.nounphrase
 
-class Definite(val stem: NounPhrase): NounPhrase {
+class Definite(val stem: NounPhrase, val alwaysDefinite: Boolean = false): NounPhrase {
 
     override fun definite(): NounPhrase =
             this
 
     override fun indefinite(): NounPhrase =
-            Indefinite(stem)
+            if (alwaysDefinite) this else Indefinite(stem)
 
     override fun head() =
             stem.head()

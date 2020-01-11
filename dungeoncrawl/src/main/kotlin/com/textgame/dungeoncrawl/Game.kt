@@ -9,6 +9,7 @@ import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateDungeon
 import com.textgame.dungeoncrawl.output.ConsoleOutput
+import com.textgame.dungeoncrawl.strategy.CompanionStrategy
 import com.textgame.dungeoncrawl.strategy.IdleStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
@@ -49,7 +50,17 @@ class Game {
 
         map.playerStartingLocation.creatures.add(player)
 
-        // Assemble all Creatures existing on the Map
+        // Initialize the Player's Companion
+        val companionStrategy = CompanionStrategy(player)
+        val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, map.playerStartingLocation, companionStrategy)
+
+        val companionWeapon = Item(nextId(), Noun("warhammer"))
+        companion.inventory.add(companionWeapon)
+        companion.weapon = companionWeapon
+
+        map.playerStartingLocation.creatures.add(companion)
+
+        // Assemble all Creatures existing on the Map (including Player and Companion)
         map.locations.forEach {
             creatures.addAll(it.creatures.members())
         }
