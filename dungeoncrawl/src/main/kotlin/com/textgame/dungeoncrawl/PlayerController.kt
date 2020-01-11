@@ -75,6 +75,7 @@ class PlayerController(
      */
     override fun handleEvent(event: GameEvent) {
         when (event) {
+            is GameStartEvent -> handleGameStart(event)
             is LookEvent -> handleLook(event)
             is InventoryEvent -> handleInventory()
             is MoveEvent -> handleMove(event)
@@ -84,6 +85,18 @@ class PlayerController(
             is AttackEvent -> handleAttack(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
         }
+    }
+
+    private fun handleGameStart(gameStart: GameStartEvent) {
+        narrate("Welcome to the game.")
+        describeLocation(gameStart.startingLocation)
+
+        val armed = player.weapon != null
+        if (!armed)
+            narrate("You are unarmed.")
+        else
+            narrate(String.format("You are armed with %s.",
+                    NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
     }
 
     private fun handleLook(event: LookEvent) {
@@ -150,7 +163,7 @@ class PlayerController(
     }
 
     private fun describeLocation(location: LocationView) {
-        narrate(NounPhraseFormatter.format(location.name, titleCase = true))
+        narrate(NounPhraseFormatter.format(location.name, titleCase = true, capitalize = true))
         narrate(location.description)
 
         // List other creatures occupying the room

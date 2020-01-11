@@ -7,11 +7,12 @@ import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
-import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateSmallMap
+import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateDungeon
 import com.textgame.dungeoncrawl.output.ConsoleOutput
 import com.textgame.dungeoncrawl.strategy.IdleStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
+import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
@@ -35,12 +36,17 @@ class Game {
      * Begins a new game and starts the game-loop
      */
     fun begin() {
-        val map = generateSmallMap()
+        val map = generateDungeon()
 
         // Initialize the Player with their starting location and equipment
         val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, map.playerStartingLocation, IdleStrategy)
         player.inventory.add(Item(nextId(), Adjective("small", Noun("key"))))
         player.inventory.add(Item(nextId(), Adjective("rusty", Noun("dagger"))))
+
+        val playerWeapon = Item(nextId(), Adjective("iron", Adjective("short", Noun("sword"))))
+        player.inventory.add(playerWeapon)
+        player.weapon = playerWeapon
+
         map.playerStartingLocation.creatures.add(player)
 
         // Assemble all Creatures existing on the Map
@@ -52,15 +58,16 @@ class Game {
         val playerInputOutput = PlayerController(player, ConsoleOutput())
         creatureListeners[player] = playerInputOutput
 
-        // Opening game narration
-        System.out.println("Welcome to the game." + System.lineSeparator())
-        execute(LookCommand(player, player.location))
+        // Announce the game's initialization
+        dispatchEvent(GameStartEvent(LocationView(map.playerStartingLocation)), player.location)
 
         // Begin the game loop
         while (true) {
             creatures.forEach {
+                // Restore the creature's actions for this turn
                 it.resetActions()
 
+                // Receive actions from the creature until it cannot act anymore
                 while (it.hasMoreActions()) {
                     val command = it.strategy.act(it)
                     execute(command)
