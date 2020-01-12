@@ -12,6 +12,7 @@ class Creature(
         id: Int,
         name: NounPhrase,
         pronouns: Pronouns,
+        val maxHealth: Int,
         var location: Location,
         var strategy: CreatureStrategy
 ): NamedEntity(id, name, pronouns) {
@@ -21,4 +22,6 @@ class Creature(
     var weapon: Item? = null
 
     val actionsAvailable: MutableMap<ActionType, Int> = mutableMapOf()
+
+    var health: Int = maxHealth
 }

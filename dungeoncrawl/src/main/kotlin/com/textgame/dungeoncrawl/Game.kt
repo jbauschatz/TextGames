@@ -14,15 +14,18 @@ import com.textgame.dungeoncrawl.strategy.IdleStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.dungeoncrawl.view.LocationView
+import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.ProperNoun
 import hasMoreActions
+import isDead
 import resetActions
 import spendAction
 import spendAllActions
+import takeDamage
 
 class Game {
 
@@ -33,6 +36,8 @@ class Game {
      */
     private val creatures: MutableList<Creature> = mutableListOf()
 
+    private val endConditions: MutableSet<GameCondition> = mutableSetOf()
+
     /**
      * Begins a new game and starts the game-loop
      */
@@ -40,7 +45,7 @@ class Game {
         val map = generateDungeon()
 
         // Initialize the Player with their starting location and equipment
-        val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, map.playerStartingLocation, IdleStrategy)
+        val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, 100, map.playerStartingLocation, IdleStrategy)
         player.inventory.add(Item(nextId(), Adjective("small", Noun("key"))))
         player.inventory.add(Item(nextId(), Adjective("rusty", Noun("dagger"))))
 
@@ -50,9 +55,12 @@ class Game {
 
         map.playerStartingLocation.creatures.add(player)
 
+        // Establish an end condition for the Player's death
+        endConditions.add(DeathCondition(player))
+
         // Initialize the Player's Companion
         val companionStrategy = CompanionStrategy(player)
-        val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, map.playerStartingLocation, companionStrategy)
+        val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, 100, map.playerStartingLocation, companionStrategy)
 
         val companionWeapon = Item(nextId(), Noun("warhammer"))
         companion.inventory.add(companionWeapon)
@@ -72,20 +80,39 @@ class Game {
         // Announce the game's initialization
         dispatchEvent(GameStartEvent(LocationView(map.playerStartingLocation)), player.location)
 
-        // Begin the game loop
+        gameLoop()
+    }
+
+    /**
+     * Begins the game's main loop, which will continue until an end condition is met
+     */
+    private fun gameLoop() {
         while (true) {
             creatures.forEach {
                 // Restore the creature's actions for this turn
                 it.resetActions()
 
                 // Receive actions from the creature until it cannot act anymore
-                while (it.hasMoreActions()) {
+                while (it.hasMoreActions() && !it.isDead()) {
                     val command = it.strategy.act(it)
                     execute(command)
+
+                    if (isGameOver()) {
+                        dispatchEvent(GameOverEvent())
+                        System.exit(0)
+                    }
                 }
             }
+
+            // TODO remove dead Creatures from the list
         }
     }
+
+    /**
+     * Determines whether any end of game conditions are currently met
+     */
+    private fun isGameOver(): Boolean =
+            endConditions.any { it.isTriggered() }
 
     /**
      * Executes the given [GameCommand], interpreting all side-effects and dispatching events to listeners
@@ -104,13 +131,22 @@ class Game {
     }
 
     /**
-     * Dispatches the [GameEvent] to all listeners
+     * Dispatches the [GameEvent] to all listeners associated with [Creature]s within the specified [Location]s
      */
     private fun dispatchEvent(event: GameEvent, vararg locations: Location) {
         creatureListeners.keys.forEach {
             if (it.location in locations) {
                 creatureListeners[it]!!.handleEvent(event)
             }
+        }
+    }
+
+    /**
+     * Dispatches the [GameEvent] to all listeners
+     */
+    private fun dispatchEvent(event: GameEvent) {
+        creatureListeners.keys.forEach {
+            creatureListeners[it]!!.handleEvent(event)
         }
     }
 
@@ -204,13 +240,28 @@ class Game {
      * Dispatches an [AttackEvent] within the [Location] of the attack.
      */
     private fun execute(attack: AttackCommand) {
+        var defender = attack.defender
+
         attack.attacker.spendAction(ActionType.ATTACK)
 
-        // TODO resolve the effects of combat
+        // Resolve damage
+        val damageDealt = 10
+        defender.takeDamage(damageDealt)
+        val lethal = defender.isDead()
+
+        if (lethal) {
+            defender.location.inventory.add(createCorpse(defender))
+            defender.location.creatures.remove(defender)
+        }
+
+        // Dispatch Attack event
         val weaponView = if (attack.weapon != null) { ItemView(attack.weapon) } else { null }
         dispatchEvent(
-                AttackEvent(CreatureView(attack.attacker), CreatureView(attack.defender), weaponView),
+                AttackEvent(CreatureView(attack.attacker), CreatureView(attack.defender), lethal, weaponView),
                 attack.attacker.location
         )
     }
+
+    private fun createCorpse(creature: Creature) =
+            Item(nextId(), Adjective("dead", creature.name), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
 }

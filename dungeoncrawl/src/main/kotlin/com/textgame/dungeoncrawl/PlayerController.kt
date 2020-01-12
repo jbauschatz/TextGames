@@ -81,6 +81,7 @@ class PlayerController(
     override fun handleEvent(event: GameEvent) {
         when (event) {
             is GameStartEvent -> handleGameStart(event)
+            is GameOverEvent -> handleGameOver(event)
             is LookEvent -> handleLook(event)
             is InventoryEvent -> handleInventory()
             is MoveEvent -> handleMove(event)
@@ -102,6 +103,10 @@ class PlayerController(
         else
             narrate(String.format("You are armed with %s.",
                     NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
+    }
+
+    private fun handleGameOver(gameOver: GameOverEvent) {
+        narrate("Game Over.")
     }
 
     private fun handleLook(event: LookEvent) {
@@ -179,6 +184,9 @@ class PlayerController(
             // Unarmed attack
             narrate(SimpleSentence(event.attacker, verb, event.defender))
         }
+
+        if (event.isLethal)
+            narrate(SimpleSentence(event.attacker, Verb("kills", "kill"), event.defender))
     }
 
     private fun describeLocation(location: LocationView) {

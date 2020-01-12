@@ -27,6 +27,7 @@ class MapGenerator {
             generateEnemy(
                     Noun("bandit"),
                     Pronouns.THIRD_PERSON_SINGULAR_MASCULINE,
+                    30,
                     antechamber,
                     listOf(Item(nextId(), Adjective("war", Noun("axe"))))
             )
@@ -41,11 +42,13 @@ class MapGenerator {
             generateEnemy(
                     Noun("skeever"),
                     THIRD_PERSON_SINGULAR_NEUTER,
+                    1,
                     hallway
             )
             generateEnemy(
                     Noun("skeleton"),
                     THIRD_PERSON_SINGULAR_NEUTER,
+                    20,
                     hallway,
                     listOf(Item(nextId(), Adjective("bone", Noun("shiv"))))
             )
@@ -71,6 +74,7 @@ class MapGenerator {
             generateEnemy(
                     Noun("bandit"),
                     THIRD_PERSON_SINGULAR_NEUTER,
+                    30,
                     puzzleLock,
                     listOf(Item(nextId(), Adjective("hunting", Noun("bow"))))
             )
@@ -87,11 +91,12 @@ class MapGenerator {
             locationB.doors[CardinalDirection.opposite(direction)] = locationA
         }
 
-        private fun generateEnemy(name: NounPhrase, pronouns: Pronouns, location: Location, equipment: List<Item> = listOf()) {
+        private fun generateEnemy(name: NounPhrase, pronouns: Pronouns, maxHealth:Int, location: Location, equipment: List<Item> = listOf()) {
             val enemy = Creature(
                     nextId(),
                     name,
                     pronouns,
+                    maxHealth,
                     location,
                     GuardStrategy
             )

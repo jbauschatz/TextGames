@@ -21,6 +21,11 @@ class AttackEvent(
         val defender: CreatureView,
 
         /**
+         * Whether [defender] was killed by this attack
+         */
+        val isLethal: Boolean,
+
+        /**
          * [Item] used to attack with
          *
          * If null, indicates an unarmed attack
