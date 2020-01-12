@@ -45,6 +45,7 @@ class Game {
 
         // Initialize the Player with their starting location and equipment
         val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, 100, map.playerStartingLocation, IdleStrategy)
+        player.allyGroups.add("PLAYER")
         player.addItem(Item(nextId(), Adjective("small", Noun("key"))))
         player.addItem(Item(nextId(), Adjective("rusty", Noun("dagger"))))
 
@@ -60,6 +61,7 @@ class Game {
         // Initialize the Player's Companion
         val companionStrategy = CompanionStrategy(player)
         val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, 100, map.playerStartingLocation, companionStrategy)
+        companion.allyGroups.add("PLAYER")
 
         val companionWeapon = Item(nextId(), Noun("warhammer"))
         companion.addItem(companionWeapon)

@@ -103,6 +103,7 @@ class MapGenerator {
             )
             equipment.forEach { enemy.addItem(it) }
 
+            enemy.allyGroups.add("MONSTER")
             location.creatures.add(enemy)
         }
     }

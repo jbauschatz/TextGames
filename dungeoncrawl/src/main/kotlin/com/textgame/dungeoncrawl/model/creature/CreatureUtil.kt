@@ -17,7 +17,16 @@ fun Creature.heal(healing: Int) {
  */
 fun Creature.enemies(): List<Creature> =
         this.location.creatures.members()
-                .filter { it != this && !it.isDead() }
+                .filter {
+                        it != this
+                                && !it.isDead()
+                                && this.isEnemy(it)
+                }
+
+fun Creature.isEnemy(other: Creature) =
+        !this.allyGroups.any {
+            other.allyGroups.contains(it)
+        }
 
 /**
  * Resets a [Creature]'s pool of available actions to correct state for the beginning of turn

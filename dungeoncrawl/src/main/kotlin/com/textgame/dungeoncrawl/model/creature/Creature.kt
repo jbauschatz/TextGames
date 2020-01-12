@@ -19,10 +19,21 @@ class Creature(
 
     val inventory: Inventory<Item> = Inventory()
 
+    val allyGroups: MutableSet<String> = mutableSetOf()
+
+    /**
+     * [Item] currently equipped as a primary weapon
+     */
     var weapon: Item? = null
 
+    /**
+     * [ActionType]s that can still be spent on this turn
+     */
     val actionsAvailable: MutableMap<ActionType, Int> = mutableMapOf()
 
+    /**
+     * Current hit points
+     */
     var health: Int = maxHealth
 
     /**
