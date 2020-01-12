@@ -25,6 +25,19 @@ open class NamedEntity(
                 id++
     }
 
+    /**
+     * [NamedEntity]s that "own" this entity in a grammatical sense of possession
+     *
+     * Manipulating this set will affect whether [Pronouns.possessiveDeterminer] is used when naming the [NamedEntity]
+     */
+    val owners: MutableSet<NamedEntity> = mutableSetOf()
+
+    fun addOwner(entity: NamedEntity) =
+            owners.add(entity)
+
+    fun isOwnedBy(entity: NamedEntity) =
+            owners.contains(entity)
+
     override fun equals(other: Any?): Boolean =
         if (other is NamedEntity) {
             id == other.id

@@ -295,4 +295,68 @@ class SentenceRealizerTest {
         assertThat(string, equalTo("A dog finds a bone and eats it."))
     }
 
+    @Test
+    fun realize_possessiveDeterminer() {
+        // GIVEN a sentence containing an owning entity and an owned one
+        val dog = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val bone = TestNamedEntity(2, Noun("bone"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+        bone.addOwner(dog)
+
+        val sentence = SimpleSentence(
+                dog,
+                Verb("eats", "eat"),
+                bone
+        )
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT the possessive determiner to be used with the owned entity
+        assertThat(string, equalTo("A dog eats his bone."))
+    }
+
+    @Test
+    fun realize_possessiveDeterminer_mixedWithPronoun() {
+        // GIVEN a sentence referencing an owned entity multiple times
+        val dog = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val bone = TestNamedEntity(2, Noun("bone"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+        bone.addOwner(dog)
+
+        val sentence = MultipleVerbalClauses(
+                dog,
+                listOf(
+                        VerbalClause(Verb("finds", "find"), bone),
+                        VerbalClause(Verb("eats", "eat"), bone)
+                )
+        )
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT the possessive determiner to be used first, followed by the pronoun
+        assertThat(string, equalTo("A dog finds his bone and eats it."))
+    }
+
+    @Test
+    fun realize_possessiveDeterminer_withinPreposition() {
+        // GIVEN a sentence referencing an owned entity within a prepositional phrase
+        val cat = TestNamedEntity(1, Noun("cat"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+        val dog = TestNamedEntity(2, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
+        val paw = TestNamedEntity(3, Noun("paw"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+        paw.addOwner(cat)
+
+        val sentence = SimpleSentence(
+                cat,
+                Verb("swats", "swat"),
+                dog,
+                PrepositionalPhrase("with", paw)
+        )
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT the possessive determiner to be used within the prepositional phrase
+        assertThat(string, equalTo("A cat swats a dog with her paw."))
+    }
+
 }

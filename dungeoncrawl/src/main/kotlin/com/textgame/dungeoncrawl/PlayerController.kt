@@ -245,6 +245,9 @@ class PlayerController(
         paragraphs.forEach {
             out.println(it.sentences.joinToString(" "))
         }
+
+        // Start fresh with pronouns due to the interruption in flow
+        realizer.resetRecentPronouns()
     }
 
 }

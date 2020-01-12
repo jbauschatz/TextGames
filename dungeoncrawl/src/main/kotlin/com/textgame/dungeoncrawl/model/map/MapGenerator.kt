@@ -5,6 +5,7 @@ import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.strategy.GuardStrategy
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.*
+import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_MASCULINE
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
 
 class MapGenerator {
@@ -26,7 +27,7 @@ class MapGenerator {
             antechamber.inventory.add(Item(nextId(), Adjective("gold", Noun("coin"))))
             generateEnemy(
                     Noun("bandit"),
-                    Pronouns.THIRD_PERSON_SINGULAR_MASCULINE,
+                    THIRD_PERSON_SINGULAR_MASCULINE,
                     30,
                     antechamber,
                     listOf(Item(nextId(), Adjective("war", Noun("axe"))))
@@ -73,7 +74,7 @@ class MapGenerator {
             )
             generateEnemy(
                     Noun("bandit"),
-                    THIRD_PERSON_SINGULAR_NEUTER,
+                    THIRD_PERSON_SINGULAR_MASCULINE,
                     30,
                     puzzleLock,
                     listOf(Item(nextId(), Adjective("hunting", Noun("bow"))))
@@ -100,7 +101,7 @@ class MapGenerator {
                     location,
                     GuardStrategy
             )
-            equipment.forEach { enemy.inventory.add(it) }
+            equipment.forEach { enemy.addItem(it) }
 
             location.creatures.add(enemy)
         }

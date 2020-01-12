@@ -4,6 +4,7 @@ import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.Case
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.Person
+import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
@@ -32,7 +33,7 @@ class SentenceRealizer(
          * [NarrativeContext] for the narration in which these sentences are being used. Consumers can mutate this instance
          * to influence how [NamedEntity]s are named during sentence realization.
          */
-        val narrativeContext: NarrativeContext
+        private val narrativeContext: NarrativeContext
 ) {
 
     /**
@@ -51,6 +52,15 @@ class SentenceRealizer(
      * Records the entity that was referred to most recently, per pronoun.
      */
     private val recentPronouns: MutableMap<Pronouns, NamedEntity> = HashMap()
+
+    /**
+     * Clears the record of recent [Pronouns] usage.
+     *
+     * This means any [NamedEntity] will be referred to at least one time by name before any of its [Pronouns] will be used
+     */
+    fun resetRecentPronouns() {
+        recentPronouns.clear()
+    }
 
     /**
      * Realizes a [Sentence] by producing a proper English String representation.
@@ -162,13 +172,14 @@ class SentenceRealizer(
      * - Whether the entity has a fixed pronoun (ie "You" or "I") within the narration
      * - Whether the entity is being newly introduced into the context (and is indefinite) or is already known in
      * context (and is definite)
+     * - Whether the entity is "owned" by another entity, and should use a possessive form
      * - Grammatical context (how is this word functioning within the sentence)
      *
      * As a side-effect, the [NamedEntity] will be considered a known entity in the [NarrativeContext], which will change
      * how it is referred to in the future.
      */
     private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case): NounPhrase {
-        val name: NounPhrase;
+        val name: NounPhrase
 
         if (case == Case.ACCUSATIVE && entity == subjectOfSentence) {
             // If the Subject and Direct Object are the same, refer to the Direct Object via reflexive pronoun
@@ -179,12 +190,13 @@ class SentenceRealizer(
             } else {
                 name = entity.pronouns.reflexive
             }
-        } else if  (recentPronouns.containsKey(entity.pronouns) && recentPronouns[entity.pronouns] === entity) {
-            // If the most recent entity that was named, and that shares pronouns with this entity, IS this enity,
+        } else if (recentPronouns.containsKey(entity.pronouns) && recentPronouns[entity.pronouns] == entity) {
+            // If the most recent entity that was named, and that shares pronouns with this entity, IS this etnity,
             // then its pronouns can be used to unambiguously refer to it
             name = entity.pronouns.get(case)
         } else {
             name = when {
+                entity.isOwnedBy(subjectOfSentence) -> Adjective(subjectOfSentence.pronouns.possessiveDeterminer.value, entity.name)
                 personOverride.containsKey(entity) -> personPronouns[personOverride[entity]]!!.get(case)
                 narrativeContext.isKnownEntity(entity) -> entity.name.head().definite()
                 else -> entity.name.indefinite()

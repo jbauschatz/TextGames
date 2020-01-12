@@ -14,7 +14,6 @@ import com.textgame.dungeoncrawl.strategy.IdleStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.dungeoncrawl.view.LocationView
-import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
@@ -46,11 +45,11 @@ class Game {
 
         // Initialize the Player with their starting location and equipment
         val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, 100, map.playerStartingLocation, IdleStrategy)
-        player.inventory.add(Item(nextId(), Adjective("small", Noun("key"))))
-        player.inventory.add(Item(nextId(), Adjective("rusty", Noun("dagger"))))
+        player.addItem(Item(nextId(), Adjective("small", Noun("key"))))
+        player.addItem(Item(nextId(), Adjective("rusty", Noun("dagger"))))
 
         val playerWeapon = Item(nextId(), Adjective("iron", Adjective("short", Noun("sword"))))
-        player.inventory.add(playerWeapon)
+        player.addItem(playerWeapon)
         player.weapon = playerWeapon
 
         map.playerStartingLocation.creatures.add(player)
@@ -63,7 +62,7 @@ class Game {
         val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, 100, map.playerStartingLocation, companionStrategy)
 
         val companionWeapon = Item(nextId(), Noun("warhammer"))
-        companion.inventory.add(companionWeapon)
+        companion.addItem(companionWeapon)
         companion.weapon = companionWeapon
 
         map.playerStartingLocation.creatures.add(companion)
@@ -195,7 +194,7 @@ class Game {
      */
     private fun execute(takeItem: TakeItemCommand) {
         takeItem.location.inventory.remove(takeItem.item)
-        takeItem.actor.inventory.add(takeItem.item)
+        takeItem.actor.addItem(takeItem.item)
 
         dispatchEvent(
                 TakeItemEvent(takeItem.actor, takeItem.item, takeItem.location),

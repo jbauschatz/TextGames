@@ -24,4 +24,12 @@ class Creature(
     val actionsAvailable: MutableMap<ActionType, Int> = mutableMapOf()
 
     var health: Int = maxHealth
+
+    /**
+     * Adds the [Item] to the [Inventory] and adds this [NamedEntity] as one of the [Item]'s owners
+     */
+    fun addItem(item: Item) {
+        inventory.add(item)
+        item.addOwner(this)
+    }
 }
