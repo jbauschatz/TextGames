@@ -89,6 +89,7 @@ class PlayerController(
             is WaitEvent -> handleWait(event)
             is EquipItemEvent -> handleEquipItem(event)
             is UnequipItemEvent -> handleUnequipItem(event)
+            is HealingItemEvent -> handleHealingItem(event)
             is AttackEvent -> handleAttack(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
         }
@@ -178,6 +179,10 @@ class PlayerController(
     private fun handleUnequipItem(event: UnequipItemEvent) {
         val unequip = Verb("sheathes", "sheathe")
         narrate(SimpleSentence(event.actor, unequip, event.item))
+    }
+
+    private fun handleHealingItem(event: HealingItemEvent) {
+        narrate(SimpleSentence(event.actor, event.verb, event.consumable))
     }
 
     private fun handleAttack(event: AttackEvent) {

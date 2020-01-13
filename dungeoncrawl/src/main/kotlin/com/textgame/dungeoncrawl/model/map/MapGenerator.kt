@@ -1,12 +1,18 @@
 package com.textgame.dungeoncrawl.model.map
 
+import com.textgame.dungeoncrawl.ifPercent
 import com.textgame.dungeoncrawl.model.creature.Creature
+import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.dungeoncrawl.model.item.Weapon
+import com.textgame.dungeoncrawl.pick
 import com.textgame.dungeoncrawl.strategy.MonsterStrategy
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.*
+import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_FEMININE
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_MASCULINE
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
+import com.textgame.engine.model.verb.Verb
 
 class MapGenerator {
 
@@ -25,13 +31,7 @@ class MapGenerator {
             )
             antechamber.inventory.add(Item(nextId(), Noun("lock pick")))
             antechamber.inventory.add(Item(nextId(), Adjective("gold", Noun("coin"))))
-            generateEnemy(
-                    Noun("bandit"),
-                    THIRD_PERSON_SINGULAR_MASCULINE,
-                    30,
-                    antechamber,
-                    listOf(Item(nextId(), Adjective("war", Noun("axe"))))
-            )
+            generateBandit(antechamber)
 
             // Hallway leading from antechamber
             val hallway = Location(
@@ -40,13 +40,13 @@ class MapGenerator {
                     THIRD_PERSON_SINGULAR_NEUTER,
                     "Your footsteps echo faintly down the long stone corridor."
             )
-            generateEnemy(
+            generateMonster(
                     Noun("skeever"),
                     THIRD_PERSON_SINGULAR_NEUTER,
                     1,
                     hallway
             )
-            generateEnemy(
+            generateMonster(
                     Noun("skeleton"),
                     THIRD_PERSON_SINGULAR_NEUTER,
                     20,
@@ -72,14 +72,8 @@ class MapGenerator {
                     THIRD_PERSON_SINGULAR_NEUTER,
                     "A lever stands on a small stone pedestal in the middle of the floor. Above the metal grate to the north is a carved fresco of a whale. A stone pedestal shows the figure of a snake."
             )
-            generateEnemy(
-                    Noun("bandit"),
-                    THIRD_PERSON_SINGULAR_MASCULINE,
-                    30,
-                    puzzleLock,
-                    listOf(Item(nextId(), Adjective("hunting", Noun("bow"))))
-            )
             connect(hallway, puzzleLock, CardinalDirection.NORTH)
+            generateBandit(puzzleLock)
 
             return Map(
                     listOf(antechamber, hallway, puzzleLock),
@@ -92,7 +86,7 @@ class MapGenerator {
             locationB.doors[CardinalDirection.opposite(direction)] = locationA
         }
 
-        private fun generateEnemy(name: NounPhrase, pronouns: Pronouns, maxHealth:Int, location: Location, equipment: List<Item> = listOf()) {
+        private fun generateMonster(name: NounPhrase, pronouns: Pronouns, maxHealth:Int, location: Location, equipment: List<Item> = listOf()) {
             val enemy = Creature(
                     nextId(),
                     name,
@@ -106,5 +100,41 @@ class MapGenerator {
             enemy.allyGroups.add("MONSTER")
             location.creatures.add(enemy)
         }
+
+        private fun generateBandit(location: Location) {
+            val bandit = Creature(
+                    nextId(),
+                    Noun("bandit"),
+                    pick(THIRD_PERSON_SINGULAR_MASCULINE, THIRD_PERSON_SINGULAR_FEMININE),
+                    30,
+                    location,
+                    MonsterStrategy
+            )
+            bandit.addItem(humanWeapon())
+
+            ifPercent(75) {
+                bandit.addItem(potionItem())
+            }
+
+            bandit.allyGroups.add("BANDIT")
+            location.creatures.add(bandit)
+        }
+
+        fun humanWeapon(): Item =
+                pick(
+                        { Weapon(nextId(), Adjective("war", Noun("axe"))) },
+                        { Weapon(nextId(), Noun("warhammer")) },
+                        { Weapon(nextId(), Adjective("iron", Noun("sword"))) },
+                        { Weapon(nextId(), Adjective("hunting", Noun("bow"))) }
+                )
+
+        fun potionItem() =
+                Consumable(
+                        nextId(),
+                        Adjective("healing", Noun("potion")),
+                        THIRD_PERSON_SINGULAR_NEUTER,
+                        Verb("drinks", "drink"),
+                        10
+                )
     }
 }

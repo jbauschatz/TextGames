@@ -5,9 +5,13 @@ import com.textgame.dungeoncrawl.event.*
 import com.textgame.dungeoncrawl.model.Inventory
 import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
+import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateDungeon
+import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.humanWeapon
+import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.potionItem
 import com.textgame.dungeoncrawl.output.ConsoleOutput
 import com.textgame.dungeoncrawl.strategy.*
 import com.textgame.dungeoncrawl.view.CreatureView
@@ -19,6 +23,7 @@ import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.ProperNoun
 import hasMoreActions
+import heal
 import isDead
 import resetActions
 import spendAction
@@ -48,7 +53,7 @@ class Game {
         player.addItem(Item(nextId(), Adjective("small", Noun("key"))))
         player.addItem(Item(nextId(), Adjective("rusty", Noun("dagger"))))
 
-        val playerWeapon = Item(nextId(), Adjective("iron", Adjective("short", Noun("sword"))))
+        val playerWeapon = Weapon(nextId(), Adjective("iron", Adjective("short", Noun("sword"))))
         player.weapon = playerWeapon
         playerWeapon.addOwner(player)
 
@@ -60,11 +65,14 @@ class Game {
         // Initialize the Player's Companion
         val companionStrategy = companionStrategy(player)
         val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, 100, map.playerStartingLocation, companionStrategy)
+        companion.takeDamage(75)
         companion.allyGroups.add("PLAYER")
 
-        val companionWeapon = Item(nextId(), Noun("warhammer"))
-        companion.weapon = companionWeapon
-        companionWeapon.addOwner(companion)
+        companion.weapon = humanWeapon()
+        companion.weapon!!.addOwner(companion)
+
+        companion.addItem(potionItem())
+        companion.addItem(potionItem())
 
         map.playerStartingLocation.creatures.add(companion)
 
@@ -129,6 +137,7 @@ class Game {
             is WaitCommand -> execute(command)
             is EquipItemCommand -> execute(command)
             is UnequipItemCommand -> execute(command)
+            is UseItemCommand -> execute(command)
             is AttackCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
@@ -251,6 +260,21 @@ class Game {
                 UnequipItemEvent(unequip.actor, unequip.item),
                 unequip.actor.location
         )
+    }
+
+    private fun execute(use: UseItemCommand) {
+        if (use.item is Consumable) {
+            use.actor.heal(use.item.healing)
+            use.actor.inventory.remove(use.item)
+            use.actor.spendAction(ActionType.ATTACK)
+
+            dispatchEvent(
+                    HealingItemEvent(use.actor, use.item),
+                    use.actor.location
+            )
+        } else {
+            throw UnsupportedOperationException("Unsupported item interaction")
+        }
     }
 
     /**

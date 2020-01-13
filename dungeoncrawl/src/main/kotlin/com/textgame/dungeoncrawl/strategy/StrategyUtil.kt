@@ -3,20 +3,25 @@ package com.textgame.dungeoncrawl.strategy
 import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
+import com.textgame.dungeoncrawl.model.item.Consumable
+import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.Location
 import enemies
 import hasActionAvailable
+import heal
 
 fun companionStrategy(leader: Creature) =
         PriorityStrategy(listOf(
                 EquipWeaponIfThreatened,
                 AttackNearbyEnemy,
                 FollowCreature(leader),
-                UnequipWeaponIfSafe
+                UnequipWeaponIfSafe,
+                ConsumeHealingItemIfInjured
         ))
 
 val MonsterStrategy = PriorityStrategy(listOf(
         EquipWeaponIfThreatened,
+        ConsumeHealingItemIfInjured,
         AttackNearbyEnemy,
         UnequipWeaponIfSafe
 ))
@@ -30,9 +35,9 @@ object EquipWeaponIfThreatened: CreatureStrategy {
             return null
 
         // Pick an arbitrary item to equip
-        if (creature.inventory.members().isNotEmpty()) {
-            val weapon = creature.inventory.members()[0]
-            return EquipItemCommand(creature, weapon)
+        creature.inventory.members().forEach {
+            if (it is Weapon)
+                return EquipItemCommand(creature, it)
         }
 
         return null
@@ -81,6 +86,28 @@ object UnequipWeaponIfSafe: CreatureStrategy {
             return null
 
         return UnequipItemCommand(creature, creature.weapon!!)
+    }
+
+}
+
+object ConsumeHealingItemIfInjured: CreatureStrategy {
+
+    override fun act(creature: Creature): GameCommand? {
+        if (!creature.hasActionAvailable(ActionType.ATTACK))
+            return null
+
+        val healthPercentage = creature.health * 100 / creature.maxHealth
+
+        if (healthPercentage > 50)
+            return null
+
+        creature.inventory.members().forEach {
+            if (it is Consumable) {
+                return UseItemCommand(creature, it)
+            }
+        }
+
+        return null
     }
 
 }
