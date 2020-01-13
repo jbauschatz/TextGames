@@ -88,6 +88,7 @@ class PlayerController(
             is TakeItemEvent -> handleTakeItem(event)
             is WaitEvent -> handleWait(event)
             is EquipItemEvent -> handleEquipItem(event)
+            is UnequipItemEvent -> handleUnequipItem(event)
             is AttackEvent -> handleAttack(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
         }
@@ -170,8 +171,13 @@ class PlayerController(
     }
 
     private fun handleEquipItem(event: EquipItemEvent) {
-        val equip = Verb("equips", "equip")
+        val equip = Verb("draws", "draw")
         narrate(SimpleSentence(event.actor, equip, event.item))
+    }
+
+    private fun handleUnequipItem(event: UnequipItemEvent) {
+        val unequip = Verb("sheathes", "sheathe")
+        narrate(SimpleSentence(event.actor, unequip, event.item))
     }
 
     private fun handleAttack(event: AttackEvent) {

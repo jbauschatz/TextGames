@@ -1,22 +1,44 @@
 package com.textgame.dungeoncrawl.strategy
 
-import com.textgame.dungeoncrawl.command.AttackCommand
-import com.textgame.dungeoncrawl.command.EquipItemCommand
-import com.textgame.dungeoncrawl.command.GameCommand
-import com.textgame.dungeoncrawl.command.MoveCommand
+import com.textgame.dungeoncrawl.command.*
+import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.map.Location
 import enemies
+import hasActionAvailable
 
 fun companionStrategy(leader: Creature) =
         PriorityStrategy(listOf(
+                EquipWeaponIfThreatened,
                 AttackNearbyEnemy,
-                FollowCreature(leader)
+                FollowCreature(leader),
+                UnequipWeaponIfSafe
         ))
 
 val MonsterStrategy = PriorityStrategy(listOf(
-        AttackNearbyEnemy
+        EquipWeaponIfThreatened,
+        AttackNearbyEnemy,
+        UnequipWeaponIfSafe
 ))
+
+object EquipWeaponIfThreatened: CreatureStrategy {
+
+    override fun act(creature: Creature): GameCommand? {
+        val enemies = creature.enemies()
+
+        if (enemies.isEmpty() || creature.weapon != null)
+            return null
+
+        // Pick an arbitrary item to equip
+        if (creature.inventory.members().isNotEmpty()) {
+            val weapon = creature.inventory.members()[0]
+            return EquipItemCommand(creature, weapon)
+        }
+
+        return null
+    }
+
+}
 
 object AttackNearbyEnemy: CreatureStrategy {
 
@@ -28,8 +50,14 @@ object AttackNearbyEnemy: CreatureStrategy {
 class FollowCreature(private val leader: Creature) : CreatureStrategy {
 
     override fun act(creature: Creature): GameCommand? {
-        // Attempt to find a path to the Leader
+        if (!creature.hasActionAvailable(ActionType.MOVE))
+            return null
+
         val leaderLocation = leader.location
+        if (leaderLocation == creature.location)
+            return null
+
+        // Attempt to find a path to the Leader
         val doors = creature.location.doors
         doors.keys.forEach {
             if (doors[it] == leaderLocation)
@@ -41,19 +69,32 @@ class FollowCreature(private val leader: Creature) : CreatureStrategy {
 
 }
 
+object UnequipWeaponIfSafe: CreatureStrategy {
+
+    override fun act(creature: Creature): GameCommand? {
+        val enemies = creature.enemies()
+
+        if (enemies.isNotEmpty())
+            return null
+
+        if (creature.weapon == null)
+            return null
+
+        return UnequipItemCommand(creature, creature.weapon!!)
+    }
+
+}
+
 /**
- * Attempt to attack the given [Creature]
+ * Attack the given [Creature] with a weapon if equipped, or make an unarmed strike
  */
-fun Creature.attack(target: Creature): GameCommand {
+fun Creature.attack(target: Creature): GameCommand? {
+    if (!this.hasActionAvailable(ActionType.ATTACK))
+        return null
+
     // Attack the target with the equipped weapon
     if (this.weapon != null)
         return AttackCommand(this, target, this.weapon)
-
-    // Pick an arbitrary item to equip
-    if (this.inventory.members().isNotEmpty()) {
-        val weapon = this.inventory.members()[0]
-        return EquipItemCommand(this, weapon)
-    }
 
     // Execute an unarmed attack
     return AttackCommand(this, target, null)
@@ -64,7 +105,6 @@ fun Creature.attack(target: Creature): GameCommand {
  */
 fun Creature.attackAnEnemy(): GameCommand? {
     val enemies = this.enemies()
-
     if (enemies.isEmpty())
         return null
 

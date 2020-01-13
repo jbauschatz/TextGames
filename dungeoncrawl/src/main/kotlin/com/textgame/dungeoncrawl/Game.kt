@@ -49,8 +49,8 @@ class Game {
         player.addItem(Item(nextId(), Adjective("rusty", Noun("dagger"))))
 
         val playerWeapon = Item(nextId(), Adjective("iron", Adjective("short", Noun("sword"))))
-        player.addItem(playerWeapon)
         player.weapon = playerWeapon
+        playerWeapon.addOwner(player)
 
         map.playerStartingLocation.creatures.add(player)
 
@@ -63,8 +63,8 @@ class Game {
         companion.allyGroups.add("PLAYER")
 
         val companionWeapon = Item(nextId(), Noun("warhammer"))
-        companion.addItem(companionWeapon)
         companion.weapon = companionWeapon
+        companionWeapon.addOwner(companion)
 
         map.playerStartingLocation.creatures.add(companion)
 
@@ -128,6 +128,7 @@ class Game {
             is LookCommand -> execute(command)
             is WaitCommand -> execute(command)
             is EquipItemCommand -> execute(command)
+            is UnequipItemCommand -> execute(command)
             is AttackCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
         }
@@ -221,7 +222,7 @@ class Game {
     }
 
     /**
-     * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Inventory] to its [Creature.weapon] slot
+     * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Creature.inventory] to its [Creature.weapon] slot
      *
      * Dispatches an [EquipItemEvent] representing the change in state
      */
@@ -234,6 +235,21 @@ class Game {
         dispatchEvent(
                 EquipItemEvent(equip.actor, equip.item),
                 equip.actor.location
+        )
+    }
+
+    /**
+     * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Creature.weapon] slot to its [Creature.inventory]
+     *
+     * Dispatches an [UnequipItemEvent] representing the change in state
+     */
+    private fun execute(unequip: UnequipItemCommand) {
+        unequip.actor.weapon = null
+        unequip.actor.inventory.add(unequip.item)
+
+        dispatchEvent(
+                UnequipItemEvent(unequip.actor, unequip.item),
+                unequip.actor.location
         )
     }
 
