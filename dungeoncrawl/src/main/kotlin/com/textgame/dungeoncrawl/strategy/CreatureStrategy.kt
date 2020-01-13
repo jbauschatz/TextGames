@@ -5,5 +5,6 @@ import com.textgame.dungeoncrawl.model.creature.Creature
 
 interface CreatureStrategy {
 
-    fun act(creature: Creature): GameCommand
+    fun act(creature: Creature): GameCommand?
+
 }

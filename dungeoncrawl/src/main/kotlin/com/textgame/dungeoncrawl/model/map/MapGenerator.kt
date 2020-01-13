@@ -2,7 +2,7 @@ package com.textgame.dungeoncrawl.model.map
 
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Item
-import com.textgame.dungeoncrawl.strategy.GuardStrategy
+import com.textgame.dungeoncrawl.strategy.MonsterStrategy
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.*
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_MASCULINE
@@ -99,7 +99,7 @@ class MapGenerator {
                     pronouns,
                     maxHealth,
                     location,
-                    GuardStrategy
+                    MonsterStrategy
             )
             equipment.forEach { enemy.addItem(it) }
 

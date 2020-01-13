@@ -9,8 +9,7 @@ import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateDungeon
 import com.textgame.dungeoncrawl.output.ConsoleOutput
-import com.textgame.dungeoncrawl.strategy.CompanionStrategy
-import com.textgame.dungeoncrawl.strategy.IdleStrategy
+import com.textgame.dungeoncrawl.strategy.*
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.dungeoncrawl.view.LocationView
@@ -59,7 +58,7 @@ class Game {
         endConditions.add(DeathCondition(player))
 
         // Initialize the Player's Companion
-        val companionStrategy = CompanionStrategy(player)
+        val companionStrategy = companionStrategy(player)
         val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, 100, map.playerStartingLocation, companionStrategy)
         companion.allyGroups.add("PLAYER")
 
@@ -96,7 +95,10 @@ class Game {
                 // Receive actions from the creature until it cannot act anymore
                 while (it.hasMoreActions() && !it.isDead()) {
                     val command = it.strategy.act(it)
-                    execute(command)
+                    if (command != null)
+                        execute(command)
+                    else
+                        execute(WaitCommand(it))
 
                     if (isGameOver()) {
                         dispatchEvent(GameOverEvent())
