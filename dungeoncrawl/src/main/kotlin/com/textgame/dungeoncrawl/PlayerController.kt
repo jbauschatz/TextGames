@@ -1,7 +1,9 @@
 package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.GameCommand
+import com.textgame.dungeoncrawl.command.WaitCommand
 import com.textgame.dungeoncrawl.event.*
+import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.map.CardinalDirection.Companion.opposite
 import com.textgame.dungeoncrawl.model.sameEntity
@@ -21,6 +23,7 @@ import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.narrator.NarrativeContext
 import com.textgame.engine.narrator.Narrator
 import com.textgame.engine.narrator.SentenceRealizer
+import hasActionAvailable
 
 /**
  * Class which allows a user to control a [Creature] designated as the Player, and to receive narration about events
@@ -66,6 +69,10 @@ class PlayerController(
      * This delegates parsing the input to the [CommandParser].
      */
     override fun act(creature: Creature): GameCommand {
+        // Auto-pass the turn if the Player has already attacked (to improve the pace of gameplay)
+        if (!creature.hasActionAvailable(ActionType.ATTACK))
+            return WaitCommand(creature)
+
         flushNarration()
 
         return parser.act(creature)
