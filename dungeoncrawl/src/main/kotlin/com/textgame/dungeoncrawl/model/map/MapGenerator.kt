@@ -5,6 +5,7 @@ import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.item.Weapon
+import com.textgame.dungeoncrawl.model.map.CardinalDirection.Companion.parse
 import com.textgame.dungeoncrawl.pick
 import com.textgame.dungeoncrawl.strategy.MonsterStrategy
 import com.textgame.engine.model.NamedEntity.Companion.nextId
@@ -13,77 +14,91 @@ import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SING
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_MASCULINE
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
 import com.textgame.engine.model.verb.Verb
+import org.yaml.snakeyaml.Yaml
 
 class MapGenerator {
 
     companion object {
 
-        /**
-         * Generates a dungeon based on "Bleak Falls Barrow" from Skyrim
-         */
-        fun generateDungeon(): Map {
-            // Player's starting cell
-            val antechamber = Location(
-                    nextId(),
-                    Definite(Adjective("barrow", Noun("antechamber"))),
-                    THIRD_PERSON_SINGULAR_NEUTER,
-                    "The air is cold and clammy, and bones rattle under your feet."
-            )
-            antechamber.inventory.add(Item(nextId(), Noun("lock pick")))
-            antechamber.inventory.add(Item(nextId(), Adjective("gold", Noun("coin"))))
-            generateBandit(antechamber)
+        private class Connection(
+                val direction: String,
+                val from: Location,
+                val to: String
+        )
 
-            // Hallway leading from antechamber
-            val hallway = Location(
-                    nextId(),
-                    Adjective("dark", Noun("hallway")),
-                    THIRD_PERSON_SINGULAR_NEUTER,
-                    "Your footsteps echo faintly down the long stone corridor."
-            )
-            generateMonster(
-                    Noun("skeever"),
-                    THIRD_PERSON_SINGULAR_NEUTER,
-                    1,
-                    hallway
-            )
-            generateMonster(
-                    Noun("skeleton"),
-                    THIRD_PERSON_SINGULAR_NEUTER,
-                    20,
-                    hallway,
-                    listOf(Item(nextId(), Adjective("bone", Noun("shiv"))))
-            )
-            connect(antechamber, hallway, CardinalDirection.NORTH)
+        fun generateMap(filename: String): GameMap {
+            val map = loadMap(filename)
 
-            // Collapsed storage room
-            val collapsedStorage = Location(
-                    nextId(),
-                    Adjective("collapsed", Adjective("storage", Noun("room"))),
-                    THIRD_PERSON_SINGULAR_NEUTER,
-                    "Rubble from the caved-in ceiling stands in a heap around the small chamber."
-            )
-            collapsedStorage.inventory.add(Item(nextId(), Adjective("embalming", Noun("knife"))))
-            connect(hallway, collapsedStorage, CardinalDirection.EAST)
+            // Generate random "encounters" and loot for each room
+            map.locations.forEach {
+                ifPercent(25) {
+                    generateBandit(it)
+                }
+                ifPercent(25) {
+                    generateMonster(
+                            Noun("skeever"),
+                            THIRD_PERSON_SINGULAR_NEUTER,
+                            1,
+                            it
+                    )
+                }
+                ifPercent(25) {
+                    generateMonster(
+                            Noun("skeleton"),
+                            THIRD_PERSON_SINGULAR_NEUTER,
+                            20,
+                            it,
+                            listOf(Item(nextId(), Adjective("bone", Noun("shiv"))))
+                    )
+                }
 
-            // Room with a puzzle lock (WIP)
-            val puzzleLock = Location(
-                    nextId(),
-                    Adjective("puzzle", Noun("room")),
-                    THIRD_PERSON_SINGULAR_NEUTER,
-                    "A lever stands on a small stone pedestal in the middle of the floor. Above the metal grate to the north is a carved fresco of a whale. A stone pedestal shows the figure of a snake."
-            )
-            connect(hallway, puzzleLock, CardinalDirection.NORTH)
-            generateBandit(puzzleLock)
+                ifPercent(10) {
+                    it.inventory.add(Item(nextId(), Noun("lock pick")))
+                    it.inventory.add(Item(nextId(), Adjective("gold", Noun("coin"))))
+                }
+            }
 
-            return Map(
-                    listOf(antechamber, hallway, puzzleLock),
-                    antechamber
-            )
+            return map
         }
 
-        private fun connect(locationA: Location, locationB: Location, direction: CardinalDirection) {
-            locationA.doors[direction] = locationB
-            locationB.doors[CardinalDirection.opposite(direction)] = locationA
+        fun loadMap(filename: String): GameMap {
+            val yaml = Yaml()
+            val inputStream = javaClass.classLoader.getResourceAsStream(filename)
+            val locationsData: List<Map<String, Any>> = yaml.load(inputStream)
+
+            val connections: MutableSet<Connection> = mutableSetOf()
+            val locationsById: MutableMap<String, Location> = mutableMapOf()
+
+            val locations = locationsData.map {
+                val location = buildLocation(it)
+                locationsById[it["id"] as String] = location
+
+                // Parse the doors, to be connected once all locations are created
+                (it["doors"] as List<*>).forEach {
+                    val doorMap = it as Map<String, String>
+                    connections.add(Connection(doorMap["direction"]!!, location, doorMap["to"]!!))
+                }
+
+                location
+            }
+
+            // Connect the completed Locations to each other
+            connections.forEach {
+                val destination = locationsById[it.to]!!
+                val direction = parse(it.direction)
+                it.from.doors[direction] = destination
+            }
+
+            return GameMap(locations, locations[0])
+        }
+
+        private fun buildLocation(locationData: Map<String, Any>): Location {
+            return Location(
+                    nextId(),
+                    ProperNoun(locationData["name"] as String),
+                    THIRD_PERSON_SINGULAR_NEUTER,
+                    locationData["description"] as String
+            )
         }
 
         private fun generateMonster(name: NounPhrase, pronouns: Pronouns, maxHealth:Int, location: Location, equipment: List<Item> = listOf()) {

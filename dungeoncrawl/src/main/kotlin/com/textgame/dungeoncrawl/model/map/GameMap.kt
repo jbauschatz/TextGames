@@ -1,6 +1,6 @@
 package com.textgame.dungeoncrawl.model.map
 
-class Map(
+class GameMap(
         val locations: List<Location>,
         val playerStartingLocation: Location
 ) {

@@ -20,6 +20,15 @@ class CardinalDirection(
         val EAST = CardinalDirection(nextId(), ProperNoun("east"))
         val WEST = CardinalDirection(nextId(), ProperNoun("west"))
 
+        fun parse(string: String) =
+                when(string.toLowerCase()) {
+                    "north" -> NORTH
+                    "south" -> SOUTH
+                    "east" -> EAST
+                    "west" -> WEST
+                    else -> throw IllegalArgumentException("Unexpected direction: $string")
+                }
+
         fun opposite(direction: CardinalDirection) = when(direction) {
             NORTH -> SOUTH
             SOUTH -> NORTH

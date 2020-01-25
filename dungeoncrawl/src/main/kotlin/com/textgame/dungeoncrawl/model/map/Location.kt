@@ -15,7 +15,7 @@ class Location(
 ): NamedEntity(id, name, pronouns) {
 
     /**
-     * Map from directions (ie "north", "up") to the corresponding [Location]
+     * GameMap from directions (ie "north", "up") to the corresponding [Location]
      */
     val doors: MutableMap<CardinalDirection, Location> = mutableMapOf()
 

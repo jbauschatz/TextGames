@@ -9,11 +9,12 @@ import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Item
 import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.Location
-import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateDungeon
+import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateMap
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.humanWeapon
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.potionItem
 import com.textgame.dungeoncrawl.output.ConsoleOutput
-import com.textgame.dungeoncrawl.strategy.*
+import com.textgame.dungeoncrawl.strategy.IdleStrategy
+import com.textgame.dungeoncrawl.strategy.companionStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.dungeoncrawl.view.LocationView
@@ -45,7 +46,7 @@ class Game {
      * Begins a new game and starts the game-loop
      */
     fun begin() {
-        val map = generateDungeon()
+        val map = generateMap("map/dungeon.yaml")
 
         // Initialize the Player with their starting location and equipment
         val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, 100, map.playerStartingLocation, IdleStrategy)
@@ -76,7 +77,7 @@ class Game {
 
         map.playerStartingLocation.creatures.add(companion)
 
-        // Assemble all Creatures existing on the Map (including Player and Companion)
+        // Assemble all Creatures existing on the GameMap (including Player and Companion)
         map.locations.forEach {
             creatures.addAll(it.creatures.members())
         }

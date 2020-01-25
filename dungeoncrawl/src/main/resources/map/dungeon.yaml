@@ -1,0 +1,40 @@
+- id: antechamber
+  name: Antechamber
+  description: The air is cold and clammy, and bones rattle under your feet. A stone pedestal in the center of the room speaks to a long-forgotten ritual purpose.
+  doors:
+    - direction: East
+      to: curvingHallway
+    - direction: North
+      to: turret
+
+- id: curvingHallway
+  name: Curving Hallway
+  description: The smooth stones of the narrow hallway gently curve, obscuring the far end from view.
+  doors:
+    - direction: West
+      to: antechamber
+    - direction: North
+      to: embalming
+
+- id: embalming
+  name: Embalming Chamber
+  description: Scattered mess litters the area - broken shards of pottery and small metal implements lie in piles. Various stone tables and pedestals dot the area.
+  doors:
+    - direction: South
+      to: curvingHallway
+
+- id: turret
+  name: Turret Room
+  description: A small round room with a very high ceiling.
+  doors:
+    - direction: South
+      to: antechamber
+    - direction: East
+      to: cell
+
+- id: cell
+  name: Large Cell
+  description: Chains and manacles hang from every place along the walls.
+  doors:
+    - direction: West
+      to: turret
