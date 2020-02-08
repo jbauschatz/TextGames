@@ -20,7 +20,8 @@ class MapGenerator {
 
     companion object {
 
-        private class Connection(
+        private class DoorData(
+                val name: String,
                 val direction: String,
                 val from: Location,
                 val to: String
@@ -66,7 +67,7 @@ class MapGenerator {
             val inputStream = javaClass.classLoader.getResourceAsStream(filename)
             val locationsData: List<Map<String, Any>> = yaml.load(inputStream)
 
-            val connections: MutableSet<Connection> = mutableSetOf()
+            val doorData: MutableSet<DoorData> = mutableSetOf()
             val locationsById: MutableMap<String, Location> = mutableMapOf()
 
             val locations = locationsData.map {
@@ -76,17 +77,29 @@ class MapGenerator {
                 // Parse the doors, to be connected once all locations are created
                 (it["doors"] as List<*>).forEach {
                     val doorMap = it as Map<String, String>
-                    connections.add(Connection(doorMap["direction"]!!, location, doorMap["to"]!!))
+                    doorData.add(DoorData(
+                            doorMap.getValue("name"),
+                            doorMap.getValue("direction"),
+                            location,
+                            doorMap.getValue("to")
+                    ))
                 }
 
                 location
             }
 
             // Connect the completed Locations to each other
-            connections.forEach {
-                val destination = locationsById[it.to]!!
+            doorData.forEach {
+                val name = Noun(it.name)
                 val direction = parse(it.direction)
-                it.from.doors[direction] = destination
+                val destination = locationsById[it.to]!!
+                it.from.doors.add(Door(
+                        nextId(),
+                        name,
+                        THIRD_PERSON_SINGULAR_NEUTER,
+                        direction,
+                        destination
+                ))
             }
 
             return GameMap(locations, locations[0])

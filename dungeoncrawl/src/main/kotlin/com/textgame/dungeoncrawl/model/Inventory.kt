@@ -16,6 +16,4 @@ class Inventory<T : NamedEntity> {
     fun members(): List<T> =
             members
 
-    fun findByName(name: String): List<T> =
-            members.filter { PartialNameMatcher.matches(name, it.name) }
 }

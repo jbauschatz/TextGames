@@ -15,9 +15,9 @@ class Location(
 ): NamedEntity(id, name, pronouns) {
 
     /**
-     * GameMap from directions (ie "north", "up") to the corresponding [Location]
+     * [Door]s which exit this [Location]
      */
-    val doors: MutableMap<CardinalDirection, Location> = mutableMapOf()
+    val doors: MutableList<Door> = mutableListOf()
 
     /**
      * [Inventory] of [Item]s within the [Location]

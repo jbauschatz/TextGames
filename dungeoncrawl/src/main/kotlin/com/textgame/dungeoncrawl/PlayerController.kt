@@ -233,8 +233,11 @@ class PlayerController(
         }
 
         // List exits
-        val formattedDoors = location.doors.map { NounPhraseFormatter.format(it.name) }
-        narrate("You can go " + FormattingUtil.formatList(formattedDoors) + ".")
+        val leads = Verb("leads", "lead")
+        location.doors.forEach {
+            narrativeContext.removeKnownEntity(it)
+            narrate(SimpleSentence(it, leads, it.direction))
+        }
     }
 
     /**

@@ -12,6 +12,9 @@ class NarrativeContext {
     fun addKnownEntity(entity: NamedEntity) =
             knownEntities.add(entity)
 
+    fun removeKnownEntity(entity: NamedEntity) =
+            knownEntities.remove(entity)
+
     fun isKnownEntity(entity: NamedEntity): Boolean =
             knownEntities.contains(entity)
 }

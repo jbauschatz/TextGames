@@ -173,7 +173,9 @@ class Game {
         move.actor.spendAction(ActionType.MOVE)
 
         val originalLocation = move.actor.location
-        val newLocation = originalLocation.doors[move.direction]!!
+
+        val door = originalLocation.doors.first { it.direction == move.direction }
+        val newLocation = door.destination
 
         // Move the Creature
         move.actor.location = newLocation

@@ -3,8 +3,10 @@
   description: The air is cold and clammy, and bones rattle under your feet. A stone pedestal in the center of the room speaks to a long-forgotten ritual purpose.
   doors:
     - direction: East
+      name: narrow portal
       to: curvingHallway
     - direction: North
+      name: wide open arch
       to: turret
 
 - id: curvingHallway
@@ -12,8 +14,10 @@
   description: The smooth stones of the narrow hallway gently curve, obscuring the far end from view.
   doors:
     - direction: West
+      name: narrow portal
       to: antechamber
     - direction: North
+      name: stone doorway
       to: embalming
 
 - id: embalming
@@ -21,6 +25,7 @@
   description: Scattered mess litters the area - broken shards of pottery and small metal implements lie in piles. Various stone tables and pedestals dot the area.
   doors:
     - direction: South
+      name: stone doorway
       to: curvingHallway
 
 - id: turret
@@ -28,8 +33,10 @@
   description: A small round room with a very high ceiling.
   doors:
     - direction: South
+      name: wide arch
       to: antechamber
     - direction: East
+      name: stout wooden door
       to: cell
 
 - id: cell
@@ -37,4 +44,5 @@
   description: Chains and manacles hang from every place along the walls.
   doors:
     - direction: West
+      name: stout wooden door
       to: turret

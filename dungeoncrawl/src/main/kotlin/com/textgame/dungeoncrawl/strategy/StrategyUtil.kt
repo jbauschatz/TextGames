@@ -8,7 +8,6 @@ import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.Location
 import enemies
 import hasActionAvailable
-import heal
 
 fun companionStrategy(leader: Creature) =
         PriorityStrategy(listOf(
@@ -64,9 +63,9 @@ class FollowCreature(private val leader: Creature) : CreatureStrategy {
 
         // Attempt to find a path to the Leader
         val doors = creature.location.doors
-        doors.keys.forEach {
-            if (doors[it] == leaderLocation)
-                return MoveCommand(creature, it)
+        creature.location.doors.forEach {
+            if (it.destination == leaderLocation)
+                return MoveCommand(creature, it.direction)
         }
 
         return null

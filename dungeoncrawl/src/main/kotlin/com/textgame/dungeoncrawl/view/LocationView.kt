@@ -4,7 +4,6 @@ import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.Pronouns
-import java.util.*
 
 /**
  * Read-only representation of a [Location] at a specific moment in the game
@@ -16,7 +15,7 @@ class LocationView private constructor(
         val description: String,
         val items: List<ItemView>,
         val creatures: List<CreatureView>,
-        val doors: List<NamedEntity>
+        val doors: List<DoorView>
 ): NamedEntity(id, name, pronouns) {
 
     constructor(location: Location): this(
@@ -26,6 +25,6 @@ class LocationView private constructor(
             location.description,
             location.inventory.members().map { ItemView(it) },
             location.creatures.members().map { CreatureView(it) },
-            LinkedList(location.doors.keys)
+            location.doors.map { DoorView(it) }
     )
 }

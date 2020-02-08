@@ -4,6 +4,7 @@ import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
+import com.textgame.engine.model.nounphrase.PartialNameMatcher.Companion.findByName
 import enemies
 import java.util.*
 
@@ -56,11 +57,11 @@ object CommandParser: CreatureStrategy {
             return null
         }
         val direction = words[1]
-        val allDirections = creature.location.doors.keys
-        for (cardinalDirection in allDirections) {
-            val cardinalDirectionName = NounPhraseFormatter.format(cardinalDirection.name)
+
+        for (door in creature.location.doors) {
+            val cardinalDirectionName = NounPhraseFormatter.format(door.direction.name)
             if (direction.toLowerCase() == cardinalDirectionName.toLowerCase())
-                return MoveCommand(creature, cardinalDirection)
+                return MoveCommand(creature, door.direction)
         }
 
         narrate("You cannot go that way.")
@@ -77,7 +78,7 @@ object CommandParser: CreatureStrategy {
         }
 
         val name = parseDirectObject(words)
-        val itemsByName = creature.location.inventory.findByName(name)
+        val itemsByName = findByName(name, creature.location.inventory.members())
 
         return when {
             itemsByName.isEmpty() -> {
@@ -101,7 +102,7 @@ object CommandParser: CreatureStrategy {
         }
 
         val name = parseDirectObject(words)
-        val itemsByName = creature.inventory.findByName(name)
+        val itemsByName = findByName(name, creature.inventory.members())
 
         if (itemsByName.isEmpty()) {
             narrate("You don't carry anything by that name.")
@@ -130,7 +131,7 @@ object CommandParser: CreatureStrategy {
         }
 
         val enemyName = parseDirectObject(words)
-        val namedEnemies = creature.location.creatures.findByName(enemyName)
+        val namedEnemies = findByName(enemyName, creature.location.creatures.members())
         // TODO filter this list to enemies of the Player
 
         return when {
