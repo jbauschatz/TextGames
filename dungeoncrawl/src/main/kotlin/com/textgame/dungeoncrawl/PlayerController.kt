@@ -88,12 +88,12 @@ class PlayerController(
     override fun handleEvent(event: GameEvent) {
         when (event) {
             is GameStartEvent -> handleGameStart(event)
-            is GameOverEvent -> handleGameOver(event)
+            is GameOverEvent -> handleGameOver()
             is LookEvent -> handleLook(event)
             is InventoryEvent -> handleInventory()
             is MoveEvent -> handleMove(event)
             is TakeItemEvent -> handleTakeItem(event)
-            is WaitEvent -> handleWait(event)
+            is WaitEvent -> handleWait()
             is EquipItemEvent -> handleEquipItem(event)
             is UnequipItemEvent -> handleUnequipItem(event)
             is HealingItemEvent -> handleHealingItem(event)
@@ -114,7 +114,7 @@ class PlayerController(
                     NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
     }
 
-    private fun handleGameOver(gameOver: GameOverEvent) {
+    private fun handleGameOver() {
         narrate("Game Over.")
     }
 
@@ -179,7 +179,7 @@ class PlayerController(
         narrate(SimpleSentence(event.actor, take, event.item))
     }
 
-    private fun handleWait(event: WaitEvent) {
+    private fun handleWait() {
     }
 
     private fun handleEquipItem(event: EquipItemEvent) {

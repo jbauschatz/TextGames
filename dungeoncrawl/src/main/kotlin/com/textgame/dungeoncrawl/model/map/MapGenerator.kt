@@ -64,24 +64,25 @@ class MapGenerator {
 
         fun loadMap(filename: String): GameMap {
             val yaml = Yaml()
-            val inputStream = javaClass.classLoader.getResourceAsStream(filename)
+            val inputStream = MapGenerator::class.java.classLoader.getResourceAsStream(filename)
             val locationsData: List<Map<String, Any>> = yaml.load(inputStream)
 
-            val doorData: MutableSet<DoorData> = mutableSetOf()
+            val allDoorData: MutableSet<DoorData> = mutableSetOf()
             val locationsById: MutableMap<String, Location> = mutableMapOf()
 
-            val locations = locationsData.map {
-                val location = buildLocation(it)
-                locationsById[it["id"] as String] = location
+            val locations = locationsData.map { locationData ->
+                val location = buildLocation(locationData)
+                locationsById[locationData["id"] as String] = location
 
                 // Parse the doors, to be connected once all locations are created
-                (it["doors"] as List<*>).forEach {
-                    val doorMap = it as Map<String, String>
-                    doorData.add(DoorData(
-                            doorMap.getValue("name"),
-                            doorMap.getValue("direction"),
+                (locationData["doors"] as List<*>).forEach {
+                    @Suppress("UNCHECKED_CAST")
+                    val doorData = it as Map<String, String>
+                    allDoorData.add(DoorData(
+                            doorData.getValue("name"),
+                            doorData.getValue("direction"),
                             location,
-                            doorMap.getValue("to")
+                            doorData.getValue("to")
                     ))
                 }
 
@@ -89,7 +90,7 @@ class MapGenerator {
             }
 
             // Connect the completed Locations to each other
-            doorData.forEach {
+            allDoorData.forEach {
                 val name = Noun(it.name)
                 val direction = parse(it.direction)
                 val destination = locationsById[it.to]!!

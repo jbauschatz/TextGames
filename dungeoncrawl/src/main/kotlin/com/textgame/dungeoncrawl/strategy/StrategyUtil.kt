@@ -62,7 +62,6 @@ class FollowCreature(private val leader: Creature) : CreatureStrategy {
             return null
 
         // Attempt to find a path to the Leader
-        val doors = creature.location.doors
         creature.location.doors.forEach {
             if (it.destination == leaderLocation)
                 return MoveCommand(creature, it.direction)
