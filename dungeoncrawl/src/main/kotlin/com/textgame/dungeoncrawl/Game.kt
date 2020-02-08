@@ -176,6 +176,7 @@ class Game {
 
         val door = originalLocation.doors.first { it.direction == move.direction }
         val newLocation = door.destination
+        val inverseDoor = newLocation.doors.first { it.destination == originalLocation }
 
         // Move the Creature
         move.actor.location = newLocation
@@ -183,7 +184,7 @@ class Game {
         newLocation.creatures.add(move.actor)
 
         dispatchEvent(
-                MoveEvent(move.actor, move.direction, originalLocation, newLocation),
+                MoveEvent(move.actor, move.direction, originalLocation, door, newLocation, inverseDoor),
                 originalLocation,
                 newLocation
         )

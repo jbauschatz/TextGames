@@ -165,7 +165,11 @@ class PlayerController(
                     Definite(opposite(event.direction).name, true),
                     Pronouns.THIRD_PERSON_SINGULAR_NEUTER
             )
-            val prep = PrepositionalPhrase("from", properCardinalDirection)
+
+            val prep = pick(
+                    PrepositionalPhrase("from", properCardinalDirection),
+                    PrepositionalPhrase("through", event.toDoor)
+            )
             narrate(SimpleSentence(event.actor, enter, null, prep))
         }
     }
