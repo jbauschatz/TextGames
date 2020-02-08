@@ -7,5 +7,5 @@ import com.textgame.engine.model.nounphrase.NounPhrase
 class TestNamedEntity(
         id: Int,
         name: NounPhrase,
-        pronouns: Pronouns
+        pronouns: Pronouns = Pronouns.THIRD_PERSON_SINGULAR_NEUTER
 ): NamedEntity(id, name, pronouns)
