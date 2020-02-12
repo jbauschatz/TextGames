@@ -17,6 +17,7 @@ import com.textgame.engine.model.Person
 import com.textgame.engine.model.nounphrase.Definite
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.nounphrase.Pronouns
+import com.textgame.engine.model.predicate.VerbPredicate
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.verb.Verb
@@ -151,12 +152,12 @@ class PlayerController(
     private fun handleMove(event: MoveEvent) {
         if (sameEntity(player, event.actor)) {
             val go = Verb("goes", "go")
-            narrate(SimpleSentence(player, go, event.direction))
+            narrate(SimpleSentence(player, VerbPredicate(go, event.direction)))
             describeLocation(event.toLocation)
         } else if (sameEntity(event.fromLocation, player.location)) {
             // An entity left the Player's location
             val exit = Verb("exits", "exit")
-            narrate(SimpleSentence(event.actor, exit, event.direction))
+            narrate(SimpleSentence(event.actor, VerbPredicate(exit, event.direction)))
         } else if (sameEntity(event.toLocation, player.location)) {
             // An entity entered the Player's location
             val enter = Verb("enters", "enter")
@@ -170,13 +171,13 @@ class PlayerController(
                     PrepositionalPhrase("from", properCardinalDirection),
                     PrepositionalPhrase("through", event.toDoor)
             )
-            narrate(SimpleSentence(event.actor, enter, null, prep))
+            narrate(SimpleSentence(event.actor, VerbPredicate(enter, prepositionalPhrase= prep)))
         }
     }
 
     private fun handleTakeItem(event: TakeItemEvent) {
         val take = Verb("takes", "take")
-        narrate(SimpleSentence(event.actor, take, event.item))
+        narrate(SimpleSentence(event.actor, VerbPredicate(take, event.item)))
     }
 
     private fun handleWait() {
@@ -184,16 +185,16 @@ class PlayerController(
 
     private fun handleEquipItem(event: EquipItemEvent) {
         val equip = Verb("draws", "draw")
-        narrate(SimpleSentence(event.actor, equip, event.item))
+        narrate(SimpleSentence(event.actor, VerbPredicate(equip, event.item)))
     }
 
     private fun handleUnequipItem(event: UnequipItemEvent) {
         val unequip = Verb("sheathes", "sheathe")
-        narrate(SimpleSentence(event.actor, unequip, event.item))
+        narrate(SimpleSentence(event.actor, VerbPredicate(unequip, event.item)))
     }
 
     private fun handleHealingItem(event: HealingItemEvent) {
-        narrate(SimpleSentence(event.actor, event.verb, event.consumable))
+        narrate(SimpleSentence(event.actor, VerbPredicate(event.verb, event.consumable)))
     }
 
     private fun handleAttack(event: AttackEvent) {
@@ -201,14 +202,14 @@ class PlayerController(
 
         if (event.weapon != null) {
             // Armed attack
-            narrate(SimpleSentence(event.attacker, verb, event.defender, PrepositionalPhrase("with", event.weapon)))
+            narrate(SimpleSentence(event.attacker, VerbPredicate(verb, event.defender, PrepositionalPhrase("with", event.weapon))))
         } else {
             // Unarmed attack
-            narrate(SimpleSentence(event.attacker, verb, event.defender))
+            narrate(SimpleSentence(event.attacker, VerbPredicate(verb, event.defender)))
         }
 
         if (event.isLethal)
-            narrate(SimpleSentence(event.attacker, Verb("kills", "kill"), event.defender))
+            narrate(SimpleSentence(event.attacker, VerbPredicate(Verb("kills", "kill"), event.defender)))
     }
 
     private fun describeLocation(location: LocationView) {
@@ -240,7 +241,7 @@ class PlayerController(
         val leads = Verb("leads", "lead")
         location.doors.forEach {
             narrativeContext.removeKnownEntity(it)
-            narrate(SimpleSentence(it, leads, it.direction))
+            narrate(SimpleSentence(it, VerbPredicate(leads, it.direction)))
         }
     }
 

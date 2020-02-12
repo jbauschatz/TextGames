@@ -5,10 +5,10 @@ import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.ProperNoun
+import com.textgame.engine.model.predicate.VerbPredicate
+import com.textgame.engine.model.predicate.VerbPredicates
 import com.textgame.engine.model.preposition.PrepositionalPhrase
-import com.textgame.engine.model.sentence.MultipleVerbalClauses
 import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.model.sentence.VerbalClause
 import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.test.TestNamedEntity
 import org.hamcrest.MatcherAssert.assertThat
@@ -35,8 +35,10 @@ class SentenceRealizerTest {
         // GIVEN a Sentence whose Subject and Object are Proper Nouns
         val sentence = SimpleSentence(
                 TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE),
-                Verb("sees", "see"),
-                TestNamedEntity(2, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+                VerbPredicate(
+                        Verb("sees", "see"),
+                        TestNamedEntity(2, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
+                )
         )
 
         // WHEN realizing the sentence
@@ -54,8 +56,10 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                Verb("chases", "chase"),
-                directObject
+                VerbPredicate(
+                        Verb("chases", "chase"),
+                        directObject
+                )
         )
 
         // WHEN realizing the sentence
@@ -78,8 +82,10 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                Verb("chases", "chase"),
-                directObject
+                VerbPredicate(
+                        Verb("chases", "chase"),
+                        directObject
+                )
         )
 
         // WHEN realizing the sentence
@@ -99,8 +105,10 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subjectObject,
-                Verb("hurts", "hurt"),
-                subjectObject
+                VerbPredicate(
+                        Verb("hurts", "hurt"),
+                        subjectObject
+                )
         )
 
         // WHEN realizing the sentence
@@ -120,8 +128,10 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                Verb("draws", "draw"),
-                TestNamedEntity(2, Noun("sword"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
+                VerbPredicate(
+                        Verb("draws", "draw"),
+                        TestNamedEntity(2, Noun("sword"), Pronouns.THIRD_PERSON_PLURAL_NEUTER)
+                )
         )
 
         // WHEN realizing the sentence
@@ -139,8 +149,10 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subjectObject,
-                Verb("hurts", "hurt"),
-                subjectObject
+                VerbPredicate(
+                        Verb("hurts", "hurt"),
+                        subjectObject
+                )
         )
 
         // WHEN realizing the sentence
@@ -159,9 +171,11 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                Verb("gives", "give"),
-                directObject,
-                PrepositionalPhrase("to", objectOfPreposition)
+                VerbPredicate(
+                        Verb("gives", "give"),
+                        directObject,
+                        PrepositionalPhrase("to", objectOfPreposition)
+                )
         )
 
         // WHEN realizing the sentence
@@ -187,9 +201,11 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                Verb("gives", "give"),
-                directObject,
-                PrepositionalPhrase("to", objectOfPreposition)
+                VerbPredicate(
+                        Verb("gives", "give"),
+                        directObject,
+                        PrepositionalPhrase("to", objectOfPreposition)
+                )
         )
 
         // WHEN realizing the sentence
@@ -215,8 +231,10 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 subject,
-                Verb("chases", "chase"),
-                directObject
+                VerbPredicate(
+                        Verb("chases", "chase"),
+                        directObject
+                )
         )
 
         // WHEN realizing the sentence
@@ -232,12 +250,12 @@ class SentenceRealizerTest {
         val jack = TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
         val hill = TestNamedEntity(2, Noun("hill"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
 
-        val sentence = MultipleVerbalClauses(
+        val sentence = SimpleSentence(
                 jack,
-                listOf(
-                        VerbalClause(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbalClause(Verb("fills", "fill"), TestNamedEntity(3, Adjective("water", Noun("pail")), Pronouns.THIRD_PERSON_SINGULAR_NEUTER))
-                )
+                VerbPredicates(listOf(
+                        VerbPredicate(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
+                        VerbPredicate(Verb("fills", "fill"), TestNamedEntity(3, Adjective("water", Noun("pail")), Pronouns.THIRD_PERSON_SINGULAR_NEUTER))
+                ))
         )
         narrativeContext.addKnownEntity(hill)
 
@@ -257,13 +275,13 @@ class SentenceRealizerTest {
         val water = TestNamedEntity(4, ProperNoun("water"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
         val jill = TestNamedEntity(5, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
 
-        val sentence = MultipleVerbalClauses(
+        val sentence = SimpleSentence(
                 jack,
-                listOf(
-                        VerbalClause(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbalClause(Verb("fills", "fill"), pail, PrepositionalPhrase("with", water)),
-                        VerbalClause(Verb("gives", "give"), pail, PrepositionalPhrase("to", jill))
-                )
+                VerbPredicates(listOf(
+                        VerbPredicate(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
+                        VerbPredicate(Verb("fills", "fill"), pail, PrepositionalPhrase("with", water)),
+                        VerbPredicate(Verb("gives", "give"), pail, PrepositionalPhrase("to", jill))
+                ))
         )
         narrativeContext.addKnownEntity(hill)
 
@@ -280,12 +298,12 @@ class SentenceRealizerTest {
         val dog = TestNamedEntity(1, Noun("dog"), Pronouns.THIRD_PERSON_SINGULAR_MASCULINE)
         val bone = TestNamedEntity(2, Noun("bone"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
 
-        val sentence = MultipleVerbalClauses(
+        val sentence = SimpleSentence(
                 dog,
-                listOf(
-                        VerbalClause(Verb("finds", "find"), bone),
-                        VerbalClause(Verb("eats", "eat"), bone)
-                )
+                VerbPredicates(listOf(
+                        VerbPredicate(Verb("finds", "find"), bone),
+                        VerbPredicate(Verb("eats", "eat"), bone)
+                ))
         )
 
         // WHEN realizing the sentence
@@ -304,8 +322,10 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 dog,
-                Verb("eats", "eat"),
-                bone
+                VerbPredicate(
+                        Verb("eats", "eat"),
+                        bone
+                )
         )
 
         // WHEN realizing the sentence
@@ -322,12 +342,12 @@ class SentenceRealizerTest {
         val bone = TestNamedEntity(2, Noun("bone"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
         bone.addOwner(dog)
 
-        val sentence = MultipleVerbalClauses(
+        val sentence = SimpleSentence(
                 dog,
-                listOf(
-                        VerbalClause(Verb("finds", "find"), bone),
-                        VerbalClause(Verb("eats", "eat"), bone)
-                )
+                VerbPredicates(listOf(
+                        VerbPredicate(Verb("finds", "find"), bone),
+                        VerbPredicate(Verb("eats", "eat"), bone)
+                ))
         )
 
         // WHEN realizing the sentence
@@ -347,9 +367,11 @@ class SentenceRealizerTest {
 
         val sentence = SimpleSentence(
                 cat,
-                Verb("swats", "swat"),
-                dog,
-                PrepositionalPhrase("with", paw)
+                VerbPredicate(
+                        Verb("swats", "swat"),
+                        dog,
+                        PrepositionalPhrase("with", paw)
+                )
         )
 
         // WHEN realizing the sentence

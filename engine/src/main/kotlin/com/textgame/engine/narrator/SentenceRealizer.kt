@@ -1,20 +1,19 @@
 package com.textgame.engine.narrator
 
-import com.textgame.engine.FormattingUtil
+import com.textgame.engine.FormattingUtil.Companion.formatList
 import com.textgame.engine.model.Case
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.Person
 import com.textgame.engine.model.nounphrase.Adjective
-import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
-import com.textgame.engine.model.sentence.MultipleVerbalClauses
+import com.textgame.engine.model.nounphrase.Pronouns
+import com.textgame.engine.model.predicate.SentencePredicate
+import com.textgame.engine.model.predicate.VerbPredicate
+import com.textgame.engine.model.predicate.VerbPredicates
 import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.model.sentence.VerbalClause
 import com.textgame.engine.model.verb.Tense
-import java.lang.IllegalArgumentException
-import java.lang.StringBuilder
 
 /**
  * Class which "realizes" a [SimpleSentence], ie produces a final human-readable Surface Form representing that sentence.
@@ -70,7 +69,6 @@ class SentenceRealizer(
     fun realize(sentence: Sentence): String =
             when(sentence) {
                 is SimpleSentence -> realizeSimpleSentence(sentence)
-                is MultipleVerbalClauses -> realizeMultipleVerbalClauses(sentence)
                 else -> throw IllegalArgumentException("Unrecognized Sentence type ${sentence.javaClass}")
             }
 
@@ -82,27 +80,8 @@ class SentenceRealizer(
         builder.append(NounPhraseFormatter.format(subjectName, true))
                 .append(" ")
 
-        // Conjugate the verb given the subject's person
-        val person = personOverride[sentence.subject] ?: Person.THIRD
-        val conjugatedVerb = sentence.verb.conjugate(person, Tense.SIMPLE_PRESENT)
-        builder.append(conjugatedVerb)
-
-        // Include the Direct Object (if present)
-        sentence.directObject?.let {
-            val directObjectName = referToEntity(sentence.directObject, sentence.subject, Case.ACCUSATIVE)
-
-            builder.append(" ")
-                    .append(NounPhraseFormatter.format(directObjectName))
-        }
-
-        // Include the Prepositional Phrase (if present)
-        sentence.prepositionalPhrase?.let {
-            val objectOfPrepositionName = referToEntity(sentence.prepositionalPhrase.objectOfPreposition, sentence.subject, Case.ACCUSATIVE)
-            builder.append(" ")
-                    .append(sentence.prepositionalPhrase.preposition)
-                    .append(" ")
-                    .append(NounPhraseFormatter.format(objectOfPrepositionName))
-        }
+        // Realize the sentence's Predicate
+        builder.append(realizePredicate(sentence.predicate, sentence.subject))
 
         // Apply punctuation at the end of the sentence
         builder.append(".")
@@ -110,47 +89,47 @@ class SentenceRealizer(
         return builder.toString()
     }
 
-    private fun realizeMultipleVerbalClauses(sentence: MultipleVerbalClauses): String {
-        val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE)
+    private fun realizePredicate(predicate: SentencePredicate, subject: NamedEntity) =
+            when(predicate) {
+                is VerbPredicate -> realizeVerbPredicate(predicate, subject)
+                is VerbPredicates -> realizeVerbPredicates(predicate, subject)
+                else -> throw IllegalArgumentException("Invalid predicate type: ${predicate.javaClass}")
+            }
 
-        // Start with basic Subject/Verb
-        val builder = StringBuilder()
-                .append(NounPhraseFormatter.format(subjectName, true))
-                .append(" ")
+    private fun realizeVerbPredicate(predicate: VerbPredicate, subject: NamedEntity): String {
+        var builder = StringBuilder()
 
-        // Join each sub-clause to the main sentence
-        val clauseStrings = sentence.clauses.map { realizeVerbalClause(it, sentence.subject) }
-        builder.append(FormattingUtil.formatList(clauseStrings))
-                .append(".")
-
-        return builder.toString()
-    }
-
-    private fun realizeVerbalClause(clause: VerbalClause, subject: NamedEntity): String {
         // Conjugate the verb given the subject's person
         val person = personOverride[subject] ?: Person.THIRD
-        val conjugatedVerb = clause.verb.conjugate(person, Tense.SIMPLE_PRESENT)
-
-        val builder = StringBuilder(conjugatedVerb)
+        val conjugatedVerb = predicate.verb.conjugate(person, Tense.SIMPLE_PRESENT)
+        builder.append(conjugatedVerb)
 
         // Include the Direct Object (if present)
-        clause.directObject?.let {
-            val directObjectName = referToEntity(clause.directObject, subject, Case.ACCUSATIVE)
+        predicate.directObject?.let {
+            val directObjectName = referToEntity(predicate.directObject, subject, Case.ACCUSATIVE)
 
             builder.append(" ")
                     .append(NounPhraseFormatter.format(directObjectName))
         }
 
         // Include the Prepositional Phrase (if present)
-        clause.prepositionalPhrase?.let {
-            val objectOfPrepositionName = referToEntity(clause.prepositionalPhrase.objectOfPreposition, subject, Case.ACCUSATIVE)
+        predicate.prepositionalPhrase?.let {
+            val objectOfPrepositionName = referToEntity(predicate.prepositionalPhrase.objectOfPreposition, subject, Case.ACCUSATIVE)
             builder.append(" ")
-                    .append(clause.prepositionalPhrase.preposition)
+                    .append(predicate.prepositionalPhrase.preposition)
                     .append(" ")
                     .append(NounPhraseFormatter.format(objectOfPrepositionName))
         }
 
         return builder.toString()
+    }
+
+    private fun realizeVerbPredicates(predicate: VerbPredicates, subject: NamedEntity): String {
+        val predicateStrings = predicate.predicates.map {
+            realizeVerbPredicate(it, subject)
+        }
+
+        return formatList(predicateStrings)
     }
 
     /**

@@ -1,9 +1,10 @@
 package com.textgame.engine.transformer
 
-import com.textgame.engine.model.sentence.MultipleVerbalClauses
+import com.textgame.engine.model.predicate.VerbPredicate
+import com.textgame.engine.model.predicate.VerbPredicates
 import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.model.sentence.VerbalClause
+import com.textgame.engine.model.verb.Verb
 
 object MultipleVerbClauseTransformer: SentenceTransformer {
 
@@ -12,13 +13,14 @@ object MultipleVerbClauseTransformer: SentenceTransformer {
             return false
 
         val firstSentence = sentences[0]
+        if (firstSentence.predicate !is VerbPredicate)
+            return false
 
         for (i in 1 until sentences.size) {
             val sentence = sentences[i]
+
+            // This sentence must have the same sentence as the first
             if (!sentence.subject.equals(firstSentence.subject)) {
-                return false
-            }
-            if (sentence.verb.equals(firstSentence.verb)) {
                 return false
             }
         }
@@ -29,9 +31,11 @@ object MultipleVerbClauseTransformer: SentenceTransformer {
     override fun transform(vararg sentences: SimpleSentence): Sentence {
         val firstSentence = sentences[0]
 
-        return MultipleVerbalClauses(
+        return SimpleSentence(
                 firstSentence.subject,
-                sentences.map { VerbalClause(it) }
+                VerbPredicates(
+                        sentences.map { it.predicate as VerbPredicate }
+                )
         )
     }
 }
