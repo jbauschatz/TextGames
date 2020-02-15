@@ -9,6 +9,7 @@ import com.textgame.dungeoncrawl.model.map.CardinalDirection.Companion.opposite
 import com.textgame.dungeoncrawl.model.sameEntity
 import com.textgame.dungeoncrawl.output.GameOutput
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
+import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.NamedEntity
@@ -25,6 +26,8 @@ import com.textgame.engine.narrator.NarrativeContext
 import com.textgame.engine.narrator.Narrator
 import com.textgame.engine.narrator.SentenceRealizer
 import hasActionAvailable
+
+private val SEE = Verb("sees", "see")
 
 /**
  * Class which allows a user to control a [Creature] designated as the Player, and to receive narration about events
@@ -44,7 +47,7 @@ import hasActionAvailable
 class PlayerController(
         private val player: Creature,
         private val out: GameOutput
-): GameEventListener, CreatureStrategy {
+) : GameEventListener, CreatureStrategy {
     private val parser = CommandParser
     private val narrativeContext = NarrativeContext()
     private val realizer = SentenceRealizer(narrativeContext)
@@ -171,7 +174,7 @@ class PlayerController(
                     PrepositionalPhrase("from", properCardinalDirection),
                     PrepositionalPhrase("through", event.toDoor)
             )
-            narrate(SimpleSentence(event.actor, VerbPredicate(enter, prepositionalPhrase= prep)))
+            narrate(SimpleSentence(event.actor, VerbPredicate(enter, prepositionalPhrase = prep)))
         }
     }
 
@@ -219,23 +222,22 @@ class PlayerController(
         // List other creatures occupying the room
         val otherCreatures = location.creatures.filter { !sameEntity(it, player) }
         if (otherCreatures.isNotEmpty()) {
-            val otherCreatureNames = otherCreatures.map { NounPhraseFormatter.format(it.name.indefinite()) }
-            narrate("You see " + FormattingUtil.formatList(otherCreatureNames) + ".")
-
-            // Any named Creatures should be known in the Narrative Context
-            otherCreatures.forEach { narrativeContext.addKnownEntity(it) }
+            otherCreatures.forEach {
+                describeCreature(it)
+            }
+            flushNarration()
         }
 
         // List items in the location
         if (location.items.isEmpty()) {
             narrate("You don't see anything of value here.")
         } else {
-            val itemNames = location.items.map { NounPhraseFormatter.format(it.name.indefinite()) }
-            narrate("You see " + FormattingUtil.formatList(itemNames) + ".")
-
-            // Any named Items should be known in the Narrative Context
-            location.items.forEach { narrativeContext.addKnownEntity(it) }
+            location.items.forEach {
+                narrativeContext.removeKnownEntity(it)
+                narrate(SimpleSentence(player, VerbPredicate(SEE, it)))
+            }
         }
+        flushNarration()
 
         // List exits
         val leads = Verb("leads", "lead")
@@ -243,6 +245,16 @@ class PlayerController(
             narrativeContext.removeKnownEntity(it)
             narrate(SimpleSentence(it, VerbPredicate(leads, it.direction)))
         }
+    }
+
+    private fun describeCreature(creature: CreatureView) {
+        narrativeContext.removeKnownEntity(creature)
+        if (creature.weapon != null)
+            narrativeContext.removeKnownEntity(creature.weapon)
+
+        narrate(SimpleSentence(player, VerbPredicate(SEE, creature)))
+        if (creature.weapon != null)
+            narrate(SimpleSentence(creature, VerbPredicate(Verb("wields", "wield"), creature.weapon)))
     }
 
     /**

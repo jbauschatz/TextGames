@@ -9,8 +9,9 @@ import com.textgame.engine.model.nounphrase.NounPhrase
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.nounphrase.Pronouns
 import com.textgame.engine.model.predicate.SentencePredicate
+import com.textgame.engine.model.predicate.VerbMultipleObjects
 import com.textgame.engine.model.predicate.VerbPredicate
-import com.textgame.engine.model.predicate.VerbPredicates
+import com.textgame.engine.model.predicate.Predicates
 import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.verb.Tense
@@ -67,7 +68,7 @@ class SentenceRealizer(
      * This will include proper punctuation and word order, and meaningful, unambiguous names for all entities.
      */
     fun realize(sentence: Sentence): String =
-            when(sentence) {
+            when (sentence) {
                 is SimpleSentence -> realizeSimpleSentence(sentence)
                 else -> throw IllegalArgumentException("Unrecognized Sentence type ${sentence.javaClass}")
             }
@@ -90,14 +91,15 @@ class SentenceRealizer(
     }
 
     private fun realizePredicate(predicate: SentencePredicate, subject: NamedEntity) =
-            when(predicate) {
+            when (predicate) {
                 is VerbPredicate -> realizeVerbPredicate(predicate, subject)
-                is VerbPredicates -> realizeVerbPredicates(predicate, subject)
+                is Predicates -> realizeVerbPredicates(predicate, subject)
+                is VerbMultipleObjects -> realizeMultipleObjects(predicate, subject)
                 else -> throw IllegalArgumentException("Invalid predicate type: ${predicate.javaClass}")
             }
 
     private fun realizeVerbPredicate(predicate: VerbPredicate, subject: NamedEntity): String {
-        var builder = StringBuilder()
+        val builder = StringBuilder()
 
         // Conjugate the verb given the subject's person
         val person = personOverride[subject] ?: Person.THIRD
@@ -124,12 +126,39 @@ class SentenceRealizer(
         return builder.toString()
     }
 
-    private fun realizeVerbPredicates(predicate: VerbPredicates, subject: NamedEntity): String {
+    private fun realizeVerbPredicates(predicate: Predicates, subject: NamedEntity): String {
         val predicateStrings = predicate.predicates.map {
             realizeVerbPredicate(it, subject)
         }
 
         return formatList(predicateStrings)
+    }
+
+    private fun realizeMultipleObjects(predicate: VerbMultipleObjects, subject: NamedEntity): String {
+        val builder = StringBuilder()
+
+        // Conjugate the verb given the subject's person
+        val person = personOverride[subject] ?: Person.THIRD
+        val conjugatedVerb = predicate.verb.conjugate(person, Tense.SIMPLE_PRESENT)
+        builder.append(conjugatedVerb)
+                .append(" ")
+
+        // Include the Direct Object (if present)
+        val formattedDirectObjectNames = predicate.directObjects.map {
+            NounPhraseFormatter.format(referToEntity(it, subject, Case.ACCUSATIVE))
+        }
+        builder.append(formatList(formattedDirectObjectNames))
+
+        // Include the Prepositional Phrase (if present)
+        predicate.prepositionalPhrase?.let {
+            val objectOfPrepositionName = referToEntity(predicate.prepositionalPhrase.objectOfPreposition, subject, Case.ACCUSATIVE)
+            builder.append(" ")
+                    .append(predicate.prepositionalPhrase.preposition)
+                    .append(" ")
+                    .append(NounPhraseFormatter.format(objectOfPrepositionName))
+        }
+
+        return builder.toString()
     }
 
     /**
@@ -175,7 +204,8 @@ class SentenceRealizer(
             name = entity.pronouns.get(case)
         } else {
             name = when {
-                entity.isOwnedBy(subjectOfSentence) -> Adjective(subjectOfSentence.pronouns.possessiveDeterminer.value, entity.name)
+                narrativeContext.isKnownEntity(entity) && entity.isOwnedBy(subjectOfSentence) ->
+                    Adjective(subjectOfSentence.pronouns.possessiveDeterminer.value, entity.name)
                 personOverride.containsKey(entity) -> personPronouns[personOverride[entity]]!!.get(case)
                 narrativeContext.isKnownEntity(entity) -> entity.name.head().definite()
                 else -> entity.name.indefinite()

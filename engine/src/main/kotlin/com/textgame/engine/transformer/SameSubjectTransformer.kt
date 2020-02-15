@@ -1,12 +1,20 @@
 package com.textgame.engine.transformer
 
 import com.textgame.engine.model.predicate.VerbPredicate
-import com.textgame.engine.model.predicate.VerbPredicates
+import com.textgame.engine.model.predicate.Predicates
 import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.model.verb.Verb
 
-object MultipleVerbClauseTransformer: SentenceTransformer {
+/**
+ * Transformer which combines sentences sharing a subject, but different verbs
+ *
+ * The resulting sentence has one [VerbPredicate] from each input sentence.
+ *
+ * Example:
+ * "Jack goes up the hill" + "Jack eats an apple"
+ * -> "Jack goes up the hill and eats the apple"
+ */
+object SameSubjectTransformer: SentenceTransformer {
 
     override fun canTransform(vararg sentences: SimpleSentence): Boolean {
         if (sentences.size < 2)
@@ -15,14 +23,19 @@ object MultipleVerbClauseTransformer: SentenceTransformer {
         val firstSentence = sentences[0]
         if (firstSentence.predicate !is VerbPredicate)
             return false
+        val subject = firstSentence.subject
+        val verb = firstSentence.predicate.verb
 
         for (i in 1 until sentences.size) {
             val sentence = sentences[i]
 
-            // This sentence must have the same sentence as the first
-            if (!sentence.subject.equals(firstSentence.subject)) {
+            // Must have the same subject as the first
+            if (sentence.subject != subject)
                 return false
-            }
+
+            // Must have a different verb than the first
+            if (sentence.predicate is VerbPredicate && sentence.predicate.verb == verb)
+                return false
         }
 
         return true
@@ -33,7 +46,7 @@ object MultipleVerbClauseTransformer: SentenceTransformer {
 
         return SimpleSentence(
                 firstSentence.subject,
-                VerbPredicates(
+                Predicates(
                         sentences.map { it.predicate as VerbPredicate }
                 )
         )

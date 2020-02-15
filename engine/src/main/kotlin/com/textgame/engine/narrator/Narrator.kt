@@ -2,7 +2,8 @@ package com.textgame.engine.narrator
 
 import com.textgame.engine.model.sentence.Sentence
 import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.transformer.MultipleVerbClauseTransformer
+import com.textgame.engine.transformer.SameSubjectTransformer
+import com.textgame.engine.transformer.SameSubjectVerbTransformer
 import com.textgame.engine.transformer.SentenceTransformer
 import java.util.*
 
@@ -18,7 +19,8 @@ class Narrator(
     private val recentSentences: MutableList<SimpleSentence> = mutableListOf()
 
     private val transformers: List<SentenceTransformer> = listOf(
-            MultipleVerbClauseTransformer
+            SameSubjectTransformer,
+            SameSubjectVerbTransformer
     )
 
     /**
@@ -58,6 +60,7 @@ class Narrator(
     private fun transform(sentences: MutableList<SimpleSentence>): List<Sentence> {
         val transformedSentences = mutableListOf<Sentence>()
 
+        // Attempt to transform each adjacent pair of sentences, using a greedy approach
         while(sentences.size > 1) {
             val firstSentence = sentences.removeAt(0)
             val nextSentence = sentences[0]

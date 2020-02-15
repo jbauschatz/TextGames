@@ -1,5 +1,5 @@
 package com.textgame.engine.model.predicate
 
-data class VerbPredicates(
+data class Predicates(
         val predicates: List<VerbPredicate>
 ): SentencePredicate
