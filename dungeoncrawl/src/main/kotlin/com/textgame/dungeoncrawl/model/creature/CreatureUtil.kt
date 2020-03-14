@@ -16,7 +16,7 @@ fun Creature.heal(healing: Int) {
  * Gets the living enemies of the [Creature] in its current [Location]
  */
 fun Creature.enemies(): List<Creature> =
-        this.location.creatures.members()
+        this.location.creatures.members
                 .filter {
                         it != this
                                 && !it.isDead()

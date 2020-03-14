@@ -4,7 +4,6 @@ package com.textgame.dungeoncrawl
  * Selects between equally likely alternatives.
  *
  * Only the chosen alternative is executed
- *
  */
 fun <T> pick(vararg options: () -> T): T =
         options[((Math.random() * options.size).toInt())]()

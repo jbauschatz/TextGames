@@ -34,7 +34,7 @@ object EquipWeaponIfThreatened: CreatureStrategy {
             return null
 
         // Pick an arbitrary item to equip
-        creature.inventory.members().forEach {
+        creature.inventory.members.forEach {
             if (it is Weapon)
                 return EquipItemCommand(creature, it)
         }
@@ -99,7 +99,7 @@ object ConsumeHealingItemIfInjured: CreatureStrategy {
         if (healthPercentage > 50)
             return null
 
-        creature.inventory.members().forEach {
+        creature.inventory.members.forEach {
             if (it is Consumable) {
                 return UseItemCommand(creature, it)
             }

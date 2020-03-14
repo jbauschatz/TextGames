@@ -79,7 +79,7 @@ class Game {
 
         // Assemble all Creatures existing on the GameMap (including Player and Companion)
         map.locations.forEach {
-            creatures.addAll(it.creatures.members())
+            creatures.addAll(it.creatures.members)
         }
 
         // Configure narration for the Player
@@ -211,7 +211,7 @@ class Game {
      * Dispatches a [TakeItemEvent] representing the change in state
      */
     private fun execute(takeItem: TakeItemCommand) {
-        takeItem.location.inventory.remove(takeItem.item)
+        takeItem.location.remove(takeItem.item)
         takeItem.actor.addItem(takeItem.item)
 
         dispatchEvent(
@@ -287,7 +287,7 @@ class Game {
      * Dispatches an [AttackEvent] within the [Location] of the attack.
      */
     private fun execute(attack: AttackCommand) {
-        var defender = attack.defender
+        val defender = attack.defender
 
         attack.attacker.spendAction(ActionType.ATTACK)
 

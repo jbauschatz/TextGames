@@ -23,7 +23,7 @@ class InventoryTest {
         inventory.add(item3)
 
         // WHEN accessing the inventory's items
-        val items = inventory.members()
+        val items = inventory.members
 
         // EXPECT all items to be present
         assertThat(items, containsInAnyOrder(item1, item2, item3))

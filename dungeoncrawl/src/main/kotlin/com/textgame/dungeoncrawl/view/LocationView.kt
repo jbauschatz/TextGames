@@ -14,6 +14,7 @@ class LocationView private constructor(
         pronouns: Pronouns,
         val description: String,
         val items: List<ItemView>,
+        val containers: List<ContainerView>,
         val creatures: List<CreatureView>,
         val doors: List<DoorView>
 ): NamedEntity(id, name, pronouns) {
@@ -23,8 +24,9 @@ class LocationView private constructor(
             location.name,
             location.pronouns,
             location.description,
-            location.inventory.members().map { ItemView(it) },
-            location.creatures.members().map { CreatureView(it) },
+            location.inventory.members.map { ItemView(it) },
+            location.containers.members.map { ContainerView(it) },
+            location.creatures.members.map { CreatureView(it) },
             location.doors.map { DoorView(it) }
     )
 }

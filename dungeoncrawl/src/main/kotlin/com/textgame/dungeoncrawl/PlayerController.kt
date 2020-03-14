@@ -17,7 +17,8 @@ import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.Person
 import com.textgame.engine.model.nounphrase.Definite
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
-import com.textgame.engine.model.nounphrase.Pronouns
+import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
+import com.textgame.engine.model.nounphrase.ProperNoun
 import com.textgame.engine.model.predicate.VerbPredicate
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
@@ -28,6 +29,13 @@ import com.textgame.engine.narrator.SentenceRealizer
 import hasActionAvailable
 
 private val SEE = Verb("sees", "see")
+
+private val IS = Verb("is", "are")
+
+/**
+ * Entity to be used when narrating "there is" sentences.
+ */
+private val THERE = NamedEntity(nextId(), ProperNoun("there"), THIRD_PERSON_SINGULAR_NEUTER)
 
 /**
  * Class which allows a user to control a [Creature] designated as the Player, and to receive narration about events
@@ -60,7 +68,7 @@ class PlayerController(
         realizer.overridePerson(player, Person.SECOND)
 
         // Player's starting items should be known objects in the Narrative Frame
-        player.inventory.members().forEach {
+        player.inventory.members.forEach {
             narrativeContext.addKnownEntity(it)
         }
     }
@@ -128,7 +136,7 @@ class PlayerController(
 
     private fun handleInventory() {
         val armed = player.weapon != null
-        val hasItems = player.inventory.members().isNotEmpty()
+        val hasItems = player.inventory.members.isNotEmpty()
 
         if (hasItems) {
             if (armed) {
@@ -136,7 +144,7 @@ class PlayerController(
                         NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
             }
 
-            val itemNames = player.inventory.members().map { NounPhraseFormatter.format(it.name.indefinite()) }
+            val itemNames = player.inventory.members.map { NounPhraseFormatter.format(it.name.indefinite()) }
             narrate("You carry " + FormattingUtil.formatList(itemNames) + ".")
 
             if (!armed) {
@@ -167,7 +175,7 @@ class PlayerController(
             val properCardinalDirection = NamedEntity(
                     nextId(),
                     Definite(opposite(event.direction).name, true),
-                    Pronouns.THIRD_PERSON_SINGULAR_NEUTER
+                    THIRD_PERSON_SINGULAR_NEUTER
             )
 
             val prep = pick(
@@ -228,15 +236,31 @@ class PlayerController(
             flushNarration()
         }
 
-        // List items in the location
-        if (location.items.isEmpty()) {
-            narrate("You don't see anything of value here.")
-        } else {
+        // List containers in the location
+        if (location.containers.isNotEmpty())
+            location.containers.forEach { container ->
+                narrativeContext.removeKnownEntity(container)
+                narrate(SimpleSentence(player, VerbPredicate(SEE, container)))
+
+                container.slots.keys.forEach { slot ->
+                    container.slots.getValue(slot).forEach { item ->
+                        narrativeContext.removeKnownEntity(item)
+                        narrate(SimpleSentence(
+                                THERE,
+                                VerbPredicate(IS, item, PrepositionalPhrase(slot, container))
+                        ))
+                    }
+                }
+            }
+
+        // List loose items in the location
+        if (location.items.isNotEmpty()) {
             location.items.forEach {
                 narrativeContext.removeKnownEntity(it)
                 narrate(SimpleSentence(player, VerbPredicate(SEE, it)))
             }
         }
+
         flushNarration()
 
         // List exits

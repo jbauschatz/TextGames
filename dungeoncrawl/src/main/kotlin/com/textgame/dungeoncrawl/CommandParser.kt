@@ -4,7 +4,6 @@ import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
-import com.textgame.engine.model.nounphrase.PartialNameMatcher.Companion.findByName
 import enemies
 import java.util.*
 
@@ -78,7 +77,7 @@ object CommandParser: CreatureStrategy {
         }
 
         val name = parseDirectObject(words)
-        val itemsByName = findByName(name, creature.location.inventory.members())
+        val itemsByName = creature.location.findByName(name)
 
         return when {
             itemsByName.isEmpty() -> {
@@ -102,7 +101,7 @@ object CommandParser: CreatureStrategy {
         }
 
         val name = parseDirectObject(words)
-        val itemsByName = findByName(name, creature.inventory.members())
+        val itemsByName = creature.inventory.findByName(name)
 
         if (itemsByName.isEmpty()) {
             narrate("You don't carry anything by that name.")
@@ -131,7 +130,7 @@ object CommandParser: CreatureStrategy {
         }
 
         val enemyName = parseDirectObject(words)
-        val namedEnemies = findByName(enemyName, creature.location.creatures.members())
+        val namedEnemies = creature.location.creatures.findByName(enemyName)
         // TODO filter this list to enemies of the Player
 
         return when {

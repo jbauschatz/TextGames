@@ -1,6 +1,7 @@
 package com.textgame.dungeoncrawl.model.map
 
 import com.textgame.dungeoncrawl.ifPercent
+import com.textgame.dungeoncrawl.model.Container
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Item
@@ -56,6 +57,10 @@ class MapGenerator {
                 ifPercent(10) {
                     it.inventory.add(Item(nextId(), Noun("lock pick")))
                     it.inventory.add(Item(nextId(), Adjective("gold", Noun("coin"))))
+                }
+
+                ifPercent(50) {
+                    generateFurniture(it)
                 }
             }
 
@@ -149,6 +154,35 @@ class MapGenerator {
             location.creatures.add(bandit)
         }
 
+        private fun generateFurniture(location: Location) {
+            pick(
+                    {
+                        val table = Container(
+                                nextId(),
+                                Adjective("wooden", Noun("table")),
+                                listOf("on", "under")
+                        )
+                        ifPercent(50) {
+                            table.getSlot("on")!!.add(humanWeapon())
+                        }
+                        ifPercent(50) {
+                            table.getSlot("on")!!.add(treasure())
+                        }
+                        ifPercent(25) {
+                            table.getSlot("on")!!.add(potionItem())
+                        }
+                        ifPercent(10) {
+                            table.getSlot("on")!!.add(treasure())
+                        }
+                        ifPercent(10) {
+                            table.getSlot("under")!!.add(treasure())
+                        }
+
+                        location.containers.add(table)
+                    }
+            )
+        }
+
         fun humanWeapon(): Item =
                 pick(
                         { Weapon(nextId(), Adjective("war", Noun("axe"))) },
@@ -164,6 +198,12 @@ class MapGenerator {
                         THIRD_PERSON_SINGULAR_NEUTER,
                         Verb("drinks", "drink"),
                         10
+                )
+
+        fun treasure() =
+                pick(
+                        { Item(nextId(), Adjective("gold", Noun("coin"))) },
+                        { Item(nextId(), Adjective("iron", Noun("coin"))) }
                 )
     }
 }
