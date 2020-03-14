@@ -119,11 +119,13 @@ class PlayerController(
         describeLocation(gameStart.startingLocation)
 
         val armed = player.weapon != null
-        if (!armed)
+        if (!armed) {
             narrate("You are unarmed.")
-        else
+        } else {
+            narrativeContext.addKnownEntity(player.weapon!!)
             narrate(String.format("You are armed with %s.",
                     NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
+        }
     }
 
     private fun handleGameOver() {
