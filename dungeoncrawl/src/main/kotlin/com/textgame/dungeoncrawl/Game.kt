@@ -70,9 +70,6 @@ class Game {
 
         map.playerStartingLocation.creatures.add(player)
 
-        // Establish an end condition for the Player's death
-        endConditions.add(DeathCondition(player))
-
         // Initialize the Player's Companion
         val companionStrategy = companionStrategy(player)
         val companion = Creature(nextId(), ProperNoun("Lydia"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE, 100, map.playerStartingLocation, companionStrategy)
@@ -91,6 +88,13 @@ class Game {
         map.locations.forEach {
             creatures.addAll(it.creatures.members)
         }
+
+        val enemies = creatures.filter { creature -> !creature.allyGroups.contains("PLAYER") }
+
+        // Establish end conditions for the player dying, or killing all enemies
+        endConditions.add(DeathCondition(listOf(player)))
+        endConditions.add(DeathCondition(enemies))
+
 
         // Determine the source of input for the player
         val playerStrategy: CreatureStrategy = when(inputOption) {

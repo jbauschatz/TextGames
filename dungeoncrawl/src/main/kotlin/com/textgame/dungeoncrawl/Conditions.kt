@@ -9,10 +9,10 @@ interface GameCondition {
 }
 
 /**
- * [GameCondition] which triggers up the given [Creature]'s death
+ * [GameCondition] which triggers when all the [Creature]s have died
  */
-class DeathCondition(private val creature: Creature): GameCondition {
+class DeathCondition(private val creatures: List<Creature>): GameCondition {
 
-    override fun isTriggered() = creature.isDead()
+    override fun isTriggered() = creatures.all { it.isDead() }
 
 }
