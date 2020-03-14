@@ -121,6 +121,9 @@ object ConsumeHealingItemIfInjured: CreatureStrategy {
 
 object ExploreRandomly: CreatureStrategy {
     override fun act(creature: Creature): GameCommand? {
+        if (!creature.hasActionAvailable(ActionType.MOVE))
+            return null
+
         val door = pick(creature.location.doors)
 
         return MoveCommand(creature, door.direction)
