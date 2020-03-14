@@ -2,9 +2,11 @@ package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.creature.Creature
+import com.textgame.dungeoncrawl.output.CommandFormatter
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import enemies
+import java.lang.System.out
 import java.util.*
 
 /**
@@ -13,6 +15,27 @@ import java.util.*
 object CommandParser: CreatureStrategy {
 
     private val scanner = Scanner(System.`in`)
+
+    /**
+     * Wraps a [CommandParser] so that it will produce output as if the user entered it into the [CommandParser].
+     *
+     * This is to facilitate AI play, or whenever a [Creature]'s commands should be output to the console as if they were
+     * user input.
+     */
+    fun wrap(strategy: CreatureStrategy): CreatureStrategy {
+        return object : CreatureStrategy {
+            override fun act(creature: Creature): GameCommand? {
+                val command = strategy.act(creature)
+
+                if (command != null) {
+                    out.println("> ${CommandFormatter.format(command)}")
+                } else {
+                    out.println("> ")
+                }
+                return command
+            }
+        }
+    }
 
     /**
      * Reads input from the user until a well-formed command was entered.

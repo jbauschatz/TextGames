@@ -6,6 +6,7 @@ import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.Location
+import com.textgame.dungeoncrawl.pick
 import enemies
 import hasActionAvailable
 
@@ -17,6 +18,14 @@ fun companionStrategy(leader: Creature) =
                 UnequipWeaponIfSafe,
                 ConsumeHealingItemIfInjured
         ))
+
+val AdventurerStrategy = PriorityStrategy(listOf(
+        EquipWeaponIfThreatened,
+        ConsumeHealingItemIfInjured,
+        AttackNearbyEnemy,
+        UnequipWeaponIfSafe,
+        ExploreRandomly
+))
 
 val MonsterStrategy = PriorityStrategy(listOf(
         EquipWeaponIfThreatened,
@@ -108,6 +117,14 @@ object ConsumeHealingItemIfInjured: CreatureStrategy {
         return null
     }
 
+}
+
+object ExploreRandomly: CreatureStrategy {
+    override fun act(creature: Creature): GameCommand? {
+        val door = pick(creature.location.doors)
+
+        return MoveCommand(creature, door.direction)
+    }
 }
 
 /**

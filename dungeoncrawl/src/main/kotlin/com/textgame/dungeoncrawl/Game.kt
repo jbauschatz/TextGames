@@ -1,5 +1,6 @@
 package com.textgame.dungeoncrawl
 
+import com.textgame.dungeoncrawl.InputOption.*
 import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.event.*
 import com.textgame.dungeoncrawl.model.Inventory
@@ -13,6 +14,8 @@ import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateMap
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.humanWeapon
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.potionItem
 import com.textgame.dungeoncrawl.output.ConsoleOutput
+import com.textgame.dungeoncrawl.strategy.AdventurerStrategy
+import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.dungeoncrawl.strategy.IdleStrategy
 import com.textgame.dungeoncrawl.strategy.companionStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
@@ -31,6 +34,11 @@ import spendAction
 import spendAllActions
 import takeDamage
 
+enum class InputOption {
+    PLAYER_INPUT,
+    AI_CONTROL
+}
+
 class Game {
 
     private val creatureListeners: MutableMap<Creature, GameEventListener> = mutableMapOf()
@@ -44,8 +52,10 @@ class Game {
 
     /**
      * Begins a new game and starts the game-loop
+     *
+     * @param inputOption determines how the user will control the player character
      */
-    fun begin() {
+    fun begin(inputOption: InputOption) {
         val map = generateMap("map/dungeon.yaml")
 
         // Initialize the Player with their starting location and equipment
@@ -82,8 +92,14 @@ class Game {
             creatures.addAll(it.creatures.members)
         }
 
+        // Determine the source of input for the player
+        val playerStrategy: CreatureStrategy = when(inputOption) {
+            PLAYER_INPUT -> CommandParser
+            AI_CONTROL -> CommandParser.wrap(AdventurerStrategy)
+        }
+
         // Configure narration for the Player
-        val playerInputOutput = PlayerController(player, ConsoleOutput())
+        val playerInputOutput = PlayerController(player, playerStrategy, ConsoleOutput())
         creatureListeners[player] = playerInputOutput
 
         // Announce the game's initialization

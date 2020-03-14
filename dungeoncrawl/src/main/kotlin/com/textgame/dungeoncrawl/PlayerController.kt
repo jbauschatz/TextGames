@@ -54,9 +54,9 @@ private val THERE = NamedEntity(nextId(), ProperNoun("there"), THIRD_PERSON_SING
  */
 class PlayerController(
         private val player: Creature,
+        private val playerStrategy: CreatureStrategy,
         private val out: GameOutput
 ) : GameEventListener, CreatureStrategy {
-    private val parser = CommandParser
     private val narrativeContext = NarrativeContext()
     private val realizer = SentenceRealizer(narrativeContext)
     private val narrator = Narrator(realizer)
@@ -80,14 +80,14 @@ class PlayerController(
      *
      * This delegates parsing the input to the [CommandParser].
      */
-    override fun act(creature: Creature): GameCommand {
+    override fun act(creature: Creature): GameCommand? {
         // Auto-pass the turn if the Player has already attacked (to improve the pace of gameplay)
         if (!creature.hasActionAvailable(ActionType.ATTACK))
             return WaitCommand(creature)
 
         flushNarration()
 
-        return parser.act(creature)
+        return playerStrategy.act(creature)
     }
 
     /**
