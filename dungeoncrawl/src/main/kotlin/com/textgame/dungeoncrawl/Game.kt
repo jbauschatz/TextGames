@@ -103,7 +103,7 @@ class Game {
         }
 
         // Configure narration for the Player
-        val playerInputOutput = PlayerController(player, playerStrategy, ConsoleOutput())
+        val playerInputOutput = PlayerController(player, playerStrategy, ConsoleOutput(80))
         creatureListeners[player] = playerInputOutput
 
         // Announce the game's initialization
