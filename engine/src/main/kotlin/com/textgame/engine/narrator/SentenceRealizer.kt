@@ -3,6 +3,7 @@ package com.textgame.engine.narrator
 import com.textgame.engine.FormattingUtil.Companion.formatList
 import com.textgame.engine.model.Case
 import com.textgame.engine.model.NamedEntity
+import com.textgame.engine.model.NounFunction
 import com.textgame.engine.model.Person
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.NounPhrase
@@ -77,7 +78,7 @@ class SentenceRealizer(
         val builder = StringBuilder()
 
         // Refer to the subject
-        val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE)
+        val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE, NounFunction.SUBJECT)
         builder.append(NounPhraseFormatter.format(subjectName, true))
                 .append(" ")
 
@@ -108,7 +109,7 @@ class SentenceRealizer(
 
         // Include the Direct Object (if present)
         predicate.directObject?.let {
-            val directObjectName = referToEntity(predicate.directObject, subject, Case.ACCUSATIVE)
+            val directObjectName = referToEntity(predicate.directObject, subject, Case.ACCUSATIVE, NounFunction.DIRECT_OBJECT)
 
             builder.append(" ")
                     .append(NounPhraseFormatter.format(directObjectName))
@@ -116,7 +117,12 @@ class SentenceRealizer(
 
         // Include the Prepositional Phrase (if present)
         predicate.prepositionalPhrase?.let {
-            val objectOfPrepositionName = referToEntity(predicate.prepositionalPhrase.objectOfPreposition, subject, Case.ACCUSATIVE)
+            val objectOfPrepositionName = referToEntity(
+                    predicate.prepositionalPhrase.objectOfPreposition,
+                    subject,
+                    Case.ACCUSATIVE,
+                    NounFunction.OBJECT_OF_PREPOSITION
+            )
             builder.append(" ")
                     .append(predicate.prepositionalPhrase.preposition)
                     .append(" ")
@@ -145,13 +151,18 @@ class SentenceRealizer(
 
         // Include the Direct Object (if present)
         val formattedDirectObjectNames = predicate.directObjects.map {
-            NounPhraseFormatter.format(referToEntity(it, subject, Case.ACCUSATIVE))
+            NounPhraseFormatter.format(referToEntity(it, subject, Case.ACCUSATIVE, NounFunction.DIRECT_OBJECT))
         }
         builder.append(formatList(formattedDirectObjectNames))
 
         // Include the Prepositional Phrase (if present)
         predicate.prepositionalPhrase?.let {
-            val objectOfPrepositionName = referToEntity(predicate.prepositionalPhrase.objectOfPreposition, subject, Case.ACCUSATIVE)
+            val objectOfPrepositionName = referToEntity(
+                    predicate.prepositionalPhrase.objectOfPreposition,
+                    subject,
+                    Case.ACCUSATIVE,
+                    NounFunction.OBJECT_OF_PREPOSITION
+            )
             builder.append(" ")
                     .append(predicate.prepositionalPhrase.preposition)
                     .append(" ")
@@ -186,7 +197,7 @@ class SentenceRealizer(
      * As a side-effect, the [NamedEntity] will be considered a known entity in the [NarrativeContext], which will change
      * how it is referred to in the future.
      */
-    private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case): NounPhrase {
+    private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case, function: NounFunction): NounPhrase {
         val name: NounPhrase
 
         if (case == Case.ACCUSATIVE && entity == subjectOfSentence) {
@@ -215,8 +226,12 @@ class SentenceRealizer(
         // Make the entity now known in the narrative context
         narrativeContext.addKnownEntity(entity)
 
-        // Note the pronouns of the entity
-        recentPronouns[entity.pronouns] = entity
+        /*
+         Note the pronouns for this entity, but only if entity's noun function is "strong" enough to
+         reserve that pronoun for later use.
+         */
+        if (function == NounFunction.SUBJECT || function == NounFunction.DIRECT_OBJECT)
+            recentPronouns[entity.pronouns] = entity
 
         return name
     }

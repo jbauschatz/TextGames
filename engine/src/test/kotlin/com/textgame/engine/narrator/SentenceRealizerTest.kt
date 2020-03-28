@@ -15,9 +15,7 @@ import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.test.TestNamedEntity
-import com.textgame.test.JACK
-import com.textgame.test.JILL
-import com.textgame.test.SEE
+import com.textgame.test.*
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
@@ -224,6 +222,29 @@ class SentenceRealizerTest {
         )
     }
 
+    /**
+     * The object of a preposition should not influence pronoun usage.
+     * If the same noun is used directly before and after a prepositional phrase, the noun's pronoun should be used
+     * the second time (ie, "skip" the object of the preposition)
+     */
+    @Test
+    fun realize_repeatPronounAfterPrepositionalPhrase() {
+        // GIVEN a sentence with a noun occurring before and after a prepositional phrase
+        val sentence = SimpleSentence(
+                JACK,
+                Predicates(listOf(
+                        VerbPredicate(SEE, APPLE, prepositionalPhrase = PrepositionalPhrase("on", HILL)),
+                        VerbPredicate(EAT, APPLE)
+                ))
+        )
+
+        // WHEN realizing the sentence
+        val string = sentenceRealizer.realize(sentence)
+
+        // EXPECT the noun's pronoun to be used after the prepositional phrase
+        assertThat(string, equalTo("Jack sees an apple on a hill and eats it."))
+    }
+
     @Test
     fun realize_knownComplexNames() {
         // GIVEN a Sentence whose Subject and Direct Object are known and have complex names
@@ -273,27 +294,21 @@ class SentenceRealizerTest {
     @Test
     fun realize_threeVerbalClauses() {
         // GIVEN a sentence with three verbal clauses
-        val jack = TestNamedEntity(1, ProperNoun("Jack"), THIRD_PERSON_SINGULAR_MASCULINE)
-        val hill = TestNamedEntity(2, Noun("hill"), THIRD_PERSON_SINGULAR_NEUTER)
-        val pail = TestNamedEntity(3, Noun("pail"), THIRD_PERSON_SINGULAR_NEUTER)
-        val water = TestNamedEntity(4, ProperNoun("water"), THIRD_PERSON_SINGULAR_NEUTER)
-        val jill = TestNamedEntity(5, ProperNoun("Jill"), THIRD_PERSON_SINGULAR_FEMININE)
-
         val sentence = SimpleSentence(
-                jack,
+                JACK,
                 Predicates(listOf(
-                        VerbPredicate(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbPredicate(Verb("fills", "fill"), pail, PrepositionalPhrase("with", water)),
-                        VerbPredicate(Verb("gives", "give"), pail, PrepositionalPhrase("to", jill))
+                        VerbPredicate(GO, prepositionalPhrase = PrepositionalPhrase("up", HILL)),
+                        VerbPredicate(Verb("fills", "fill"), PAIL, PrepositionalPhrase("with", WATER)),
+                        VerbPredicate(Verb("gives", "give"), PAIL, PrepositionalPhrase("to", JILL))
                 ))
         )
-        narrativeContext.addKnownEntity(hill)
+        narrativeContext.addKnownEntity(HILL)
 
         // WHEN realizing the sentence
         val string = sentenceRealizer.realize(sentence)
 
         // EXPECT the three sub-clauses to be joined together by commas after the subject
-        assertThat(string, equalTo("Jack runs up the hill, fills a pail with water, and gives the pail to Jill."))
+        assertThat(string, equalTo("Jack goes up the hill, fills a pail with water, and gives it to Jill."))
     }
 
     @Test

@@ -13,9 +13,10 @@ val JACK = TestNamedEntity(1, ProperNoun("Jack"), Pronouns.THIRD_PERSON_SINGULAR
 val JILL = TestNamedEntity(2, ProperNoun("Jill"), Pronouns.THIRD_PERSON_SINGULAR_FEMININE)
 val HILL = TestNamedEntity(3, Noun("hill"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
 val APPLE = TestNamedEntity(4, Noun("apple"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
-val ORANGE = TestNamedEntity(6, Noun("cookie"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
-val COOKIE = TestNamedEntity(7, Noun("orange"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
-val WATER = TestNamedEntity(8, Noun("water"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+val ORANGE = TestNamedEntity(6, Noun("orange"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+val COOKIE = TestNamedEntity(7, Noun("cookie"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+val WATER = TestNamedEntity(8, ProperNoun("water"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
+val PAIL = TestNamedEntity(9, Noun("pail"), Pronouns.THIRD_PERSON_SINGULAR_NEUTER)
 
 val GO = Verb("goes", "go")
 val EAT = Verb("eats", "eat")
