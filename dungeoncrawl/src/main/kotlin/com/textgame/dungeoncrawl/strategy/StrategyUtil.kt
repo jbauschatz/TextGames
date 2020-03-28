@@ -3,8 +3,7 @@ package com.textgame.dungeoncrawl.strategy
 import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
-import com.textgame.dungeoncrawl.model.item.Consumable
-import com.textgame.dungeoncrawl.model.item.Weapon
+import com.textgame.dungeoncrawl.model.item.*
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.pick
 import enemies
@@ -24,6 +23,7 @@ val AdventurerStrategy = PriorityStrategy(listOf(
         ConsumeHealingItemIfInjured,
         AttackNearbyEnemy,
         UnequipWeaponIfSafe,
+        LootRoom,
         ExploreRandomly
 ))
 
@@ -77,6 +77,23 @@ class FollowCreature(private val leader: Creature) : CreatureStrategy {
         }
 
         return null
+    }
+
+}
+
+object LootRoom: CreatureStrategy {
+    override fun act(creature: Creature): GameCommand? {
+        val items = creature.location.allItems().filter {
+            it is Weapon
+                    || it is Consumable
+                    || it is Treasure
+        }
+
+        if (items.isEmpty())
+            return null
+
+        val item = pick(items)
+        return TakeItemCommand(creature, item, creature.location)
     }
 
 }

@@ -16,9 +16,9 @@ class TakeItemEvent(
         val location: LocationView
 ): GameEvent {
 
-    constructor(actor: Creature, item: Item, location: Location): this(
+    constructor(actor: Creature, itemView: ItemView, location: Location): this(
             CreatureView(actor),
-            ItemView(item),
+            itemView,
             LocationView(location)
     )
 }

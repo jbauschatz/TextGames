@@ -5,6 +5,7 @@ import com.textgame.dungeoncrawl.model.Container
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.dungeoncrawl.model.item.Treasure
 import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.CardinalDirection.Companion.parse
 import com.textgame.dungeoncrawl.pick
@@ -50,13 +51,13 @@ class MapGenerator {
                             THIRD_PERSON_SINGULAR_NEUTER,
                             20,
                             it,
-                            listOf(Item(nextId(), Adjective("bone", Noun("shiv"))))
+                            listOf(Weapon(nextId(), Adjective("bone", Noun("shiv"))))
                     )
                 }
 
                 ifPercent(10) {
-                    it.inventory.add(Item(nextId(), Noun("lock pick")))
-                    it.inventory.add(Item(nextId(), Adjective("gold", Noun("coin"))))
+                    it.inventory.add(Treasure(nextId(), Noun("lock pick")))
+                    it.inventory.add(Treasure(nextId(), Adjective("gold", Noun("coin"))))
                 }
 
                 ifPercent(50) {
@@ -202,8 +203,9 @@ class MapGenerator {
 
         fun treasure() =
                 pick(
-                        { Item(nextId(), Adjective("gold", Noun("coin"))) },
-                        { Item(nextId(), Adjective("iron", Noun("coin"))) }
+                        { Treasure(nextId(), Adjective("gold", Noun("coin"))) },
+                        { Treasure(nextId(), Adjective("silver", Noun("coin"))) },
+                        { Treasure(nextId(), Adjective("iron", Noun("coin"))) }
                 )
     }
 }

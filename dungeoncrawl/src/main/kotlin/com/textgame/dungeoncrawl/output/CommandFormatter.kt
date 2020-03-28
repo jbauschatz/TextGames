@@ -22,7 +22,7 @@ class CommandFormatter {
                     is MoveCommand -> "go ${NounPhraseFormatter.format(command.direction.name)}"
                     is LookCommand -> "look"
                     is EquipItemCommand -> "equip ${NounPhraseFormatter.format(command.item.name)}"
-                    is TakeItemCommand -> "equip ${NounPhraseFormatter.format(command.item.name)}"
+                    is TakeItemCommand -> "take ${NounPhraseFormatter.format(command.item.name)}"
                     is WaitCommand -> "wait"
                     else -> "help"
                 }

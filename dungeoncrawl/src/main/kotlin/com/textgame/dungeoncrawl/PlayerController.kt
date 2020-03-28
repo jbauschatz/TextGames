@@ -10,6 +10,7 @@ import com.textgame.dungeoncrawl.model.sameEntity
 import com.textgame.dungeoncrawl.output.GameOutput
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
+import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.NamedEntity
@@ -190,7 +191,16 @@ class PlayerController(
 
     private fun handleTakeItem(event: TakeItemEvent) {
         val take = Verb("takes", "take")
-        narrate(SimpleSentence(event.actor, VerbPredicate(take, event.item)))
+
+        /* Since the item has already changed possession, make a copy of it with no owner
+           to make the narration more clear */
+        val item = ItemView(
+                event.item.id,
+                event.item.name,
+                event.item.pronouns
+        )
+
+        narrate(SimpleSentence(event.actor, VerbPredicate(take, item)))
     }
 
     private fun handleWait() {

@@ -231,11 +231,14 @@ class Game {
      * Dispatches a [TakeItemEvent] representing the change in state
      */
     private fun execute(takeItem: TakeItemCommand) {
+        // The event should indicate the item before possession is changed
+        val itemBeforeTake = ItemView(takeItem.item)
+
         takeItem.location.remove(takeItem.item)
         takeItem.actor.addItem(takeItem.item)
 
         dispatchEvent(
-                TakeItemEvent(takeItem.actor, takeItem.item, takeItem.location),
+                TakeItemEvent(takeItem.actor, itemBeforeTake, takeItem.location),
                 takeItem.location
         )
     }

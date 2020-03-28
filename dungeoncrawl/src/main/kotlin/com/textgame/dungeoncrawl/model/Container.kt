@@ -30,6 +30,14 @@ class Container constructor(
     fun getSlot(slot: String): Inventory<Item>? =
             slots[slot]
 
+    fun allItems(): List<Item> {
+        val allItems = mutableListOf<Item>()
+        slots.values.forEach {
+            allItems.addAll(it.members)
+        }
+        return allItems
+    }
+
     /**
      * Finds all [Item]s which match the given name, within all Slots
      */

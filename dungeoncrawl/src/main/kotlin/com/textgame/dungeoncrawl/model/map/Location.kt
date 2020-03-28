@@ -35,6 +35,17 @@ class Location(
      */
     val containers: Inventory<Container> = Inventory()
 
+    fun allItems(): List<Item> {
+        val allItems: MutableList<Item> = mutableListOf()
+        allItems.addAll(inventory.members)
+
+        containers.members.forEach {
+            allItems.addAll(it.allItems())
+        }
+
+        return allItems
+    }
+
     /**
      * Finds all [Item]s which match the given name, within this [Location]'s [Inventory]
      * or contained in any [Container] within it
