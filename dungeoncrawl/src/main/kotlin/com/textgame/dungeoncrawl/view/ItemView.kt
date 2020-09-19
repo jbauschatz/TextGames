@@ -11,7 +11,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 class ItemView(
         id: Int,
         name: NounPhrase,
-        pronouns: Pronouns
+        pronouns: Pronouns?
 ): NamedEntity(id, name, pronouns) {
     constructor(item: Item): this(item.id, item.name, item.pronouns) {
         // TODO in the interest of information hiding, this should not be the full instance

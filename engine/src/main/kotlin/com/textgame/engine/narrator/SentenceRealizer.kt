@@ -5,10 +5,7 @@ import com.textgame.engine.model.Case
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.NounFunction
 import com.textgame.engine.model.Person
-import com.textgame.engine.model.nounphrase.Adjective
-import com.textgame.engine.model.nounphrase.NounPhrase
-import com.textgame.engine.model.nounphrase.NounPhraseFormatter
-import com.textgame.engine.model.nounphrase.Pronouns
+import com.textgame.engine.model.nounphrase.*
 import com.textgame.engine.model.predicate.SentencePredicate
 import com.textgame.engine.model.predicate.VerbMultipleObjects
 import com.textgame.engine.model.predicate.VerbPredicate
@@ -34,7 +31,14 @@ class SentenceRealizer(
          * [NarrativeContext] for the narration in which these sentences are being used. Consumers can mutate this instance
          * to influence how [NamedEntity]s are named during sentence realization.
          */
-        private val narrativeContext: NarrativeContext
+        private val narrativeContext: NarrativeContext,
+
+        /**
+         * Enables debug mode.
+         *
+         * If enabled, all names (including pronouns) will include a debug string to identify the referent.
+         */
+        private val debug: Boolean = false
 ) {
 
     /**
@@ -45,6 +49,11 @@ class SentenceRealizer(
      */
     private val personOverride: MutableMap<NamedEntity, Person> = HashMap()
 
+    /**
+     * Overrides the grammatical person of a [NamedEntity].
+     *
+     * For example, to narrate the player's actions in 2nd person
+     */
     private val personPronouns: Map<Person, Pronouns> = mapOf(
             Pair(Person.SECOND, Pronouns.SECOND_PERSON_SINGULAR)
     )
@@ -52,7 +61,7 @@ class SentenceRealizer(
     /**
      * Records the entity that was referred to most recently, per pronoun.
      */
-    private val recentPronouns: MutableMap<Pronouns, NamedEntity> = HashMap()
+    private val pronounUsage: PronounContext = PronounContext()
 
     /**
      * Clears the record of recent [Pronouns] usage.
@@ -60,7 +69,7 @@ class SentenceRealizer(
      * This means any [NamedEntity] will be referred to at least one time by name before any of its [Pronouns] will be used
      */
     fun resetRecentPronouns() {
-        recentPronouns.clear()
+        pronounUsage.clear()
     }
 
     /**
@@ -200,7 +209,7 @@ class SentenceRealizer(
     private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case, function: NounFunction): NounPhrase {
         val name: NounPhrase
 
-        if (case == Case.ACCUSATIVE && entity == subjectOfSentence) {
+        if (case == Case.ACCUSATIVE && entity == subjectOfSentence && entity.pronouns != null) {
             // If the Subject and Direct Object are the same, refer to the Direct Object via reflexive pronoun
             // This may be the entity's native pronoun, or one configured via [overridePerson(NamedEntity, Pronouns)]
             if (personOverride.containsKey(entity)) {
@@ -209,30 +218,45 @@ class SentenceRealizer(
             } else {
                 name = entity.pronouns.reflexive
             }
-        } else if (recentPronouns.containsKey(entity.pronouns) && recentPronouns[entity.pronouns] == entity) {
-            // If the most recent entity that was named, and that shares pronouns with this entity, IS this etnity,
-            // then its pronouns can be used to unambiguously refer to it
-            name = entity.pronouns.get(case)
+        } else if (pronounUsage.shouldUsePronouns(entity, entity.pronouns, function)) {
+            name = entity.pronouns!!.get(case)
         } else {
             name = when {
-                narrativeContext.isKnownEntity(entity) && entity.isOwnedBy(subjectOfSentence) ->
-                    Adjective(subjectOfSentence.pronouns.possessiveDeterminer.value, entity.name)
+                narrativeContext.isKnownEntity(entity) && entity.isOwnedBy(subjectOfSentence) && subjectOfSentence.pronouns != null ->
+                    Adjective(
+                            if (!debug) subjectOfSentence.pronouns.possessiveDeterminer.value
+                                    else buildDebugPossessiveDeterminer(subjectOfSentence),
+                            entity.name
+                    )
                 personOverride.containsKey(entity) -> personPronouns[personOverride[entity]]!!.get(case)
                 narrativeContext.isKnownEntity(entity) -> entity.name.head().definite()
                 else -> entity.name.indefinite()
             }
         }
 
-        // Make the entity now known in the narrative context
+        // Track that this entity was named, so it will affect how future entities are named
         narrativeContext.addKnownEntity(entity)
+        pronounUsage.recordPronounUsage(entity, entity.pronouns, function)
 
-        /*
-         Note the pronouns for this entity, but only if entity's noun function is "strong" enough to
-         reserve that pronoun for later use.
-         */
-        if (function == NounFunction.SUBJECT || function == NounFunction.DIRECT_OBJECT)
-            recentPronouns[entity.pronouns] = entity
-
-        return name
+        val nameString = NounPhraseFormatter.format(name)
+        return if (!debug) name else Noun("$nameString(${buildDebugName(entity)})")
     }
+
+    /**
+     * Builds a string like "her(Lydia's)" to help debug possessive determiners
+     */
+    private fun buildDebugPossessiveDeterminer(possessor: NamedEntity) =
+        possessor.pronouns!!.possessiveDeterminer.value +
+                "(${NounPhraseFormatter.format(possessor.name)}'s/${possessor.pronouns.gender})"
+
+    /**
+     * Builds a string like "bandit/MS" to help debug names
+     */
+    private fun buildDebugName(entity: NamedEntity): String {
+        val nameString = NounPhraseFormatter.format(entity.name)
+        return if (entity.pronouns != null)
+            "$nameString/${entity.pronouns.gender}"
+        else nameString
+    }
+
 }

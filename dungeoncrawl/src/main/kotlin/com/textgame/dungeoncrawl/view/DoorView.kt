@@ -12,7 +12,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 class DoorView private constructor(
         id: Int,
         name: NounPhrase,
-        pronouns: Pronouns,
+        pronouns: Pronouns?,
         val direction: CardinalDirection
 ) : NamedEntity(id, name, pronouns) {
     constructor(door: Door) : this(door.id, door.name, door.pronouns, door.direction)

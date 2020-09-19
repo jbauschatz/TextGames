@@ -11,7 +11,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 class CreatureView(
         id: Int,
         name: NounPhrase,
-        pronouns: Pronouns,
+        pronouns: Pronouns?,
         val weapon: ItemView?
 ): NamedEntity(id, name, pronouns) {
     constructor(creature: Creature): this(

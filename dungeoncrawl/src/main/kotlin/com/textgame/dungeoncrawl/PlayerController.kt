@@ -36,7 +36,7 @@ private val IS = Verb("is", "are")
 /**
  * Entity to be used when narrating "there is" sentences.
  */
-private val THERE = NamedEntity(nextId(), ProperNoun("there"), THIRD_PERSON_SINGULAR_NEUTER)
+private val THERE = NamedEntity(nextId(), ProperNoun("there"), null)
 
 /**
  * Class which allows a user to control a [Creature] designated as the Player, and to receive narration about events

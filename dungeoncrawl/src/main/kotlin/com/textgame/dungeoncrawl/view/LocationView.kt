@@ -11,7 +11,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 class LocationView private constructor(
         id: Int,
         name: NounPhrase,
-        pronouns: Pronouns,
+        pronouns: Pronouns?,
         val description: String,
         val items: List<ItemView>,
         val containers: List<ContainerView>,

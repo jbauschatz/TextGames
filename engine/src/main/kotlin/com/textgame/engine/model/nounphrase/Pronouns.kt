@@ -9,6 +9,8 @@ import com.textgame.engine.model.Case
  */
 data class Pronouns(
 
+        val gender: String,
+
         /**
          * Form of the pronoun to be used in the Subject of a sentence.
          * Examples: "[he/she/it/they] threw the ball"
@@ -46,12 +48,14 @@ data class Pronouns(
 ) {
 
     constructor(
+            gender: String,
             nominative: String,
             accusative: String,
             possessivePronoun: String,
             possessiveDeterminer: String,
             reflexive: String
     ): this (
+            gender,
             Pronoun(nominative),
             Pronoun(accusative),
             Pronoun(possessivePronoun),
@@ -64,17 +68,17 @@ data class Pronouns(
         /**
          * Pronouns used for a grammatically masculine, singular entity
          */
-        val THIRD_PERSON_SINGULAR_MASCULINE = Pronouns("he", "him", "his", "his", "himself")
+        val THIRD_PERSON_SINGULAR_MASCULINE = Pronouns("MS", "he", "him", "his", "his", "himself")
 
         /**
          * Pronouns used for a grammatically feminine, singular entity
          */
-        val THIRD_PERSON_SINGULAR_FEMININE = Pronouns("she", "her", "hers", "her", "herself")
+        val THIRD_PERSON_SINGULAR_FEMININE = Pronouns("FS", "she", "her", "hers", "her", "herself")
 
         /**
          * Pronouns used for a grammatically neuter, singular entity
          */
-        val THIRD_PERSON_SINGULAR_NEUTER = Pronouns("it", "it", "its", "its", "itself")
+        val THIRD_PERSON_SINGULAR_NEUTER = Pronouns("NS", "it", "it", "its", "its", "itself")
 
         /**
          * Pronouns used for an unknown or non masculine/feminine singular entity
@@ -82,22 +86,22 @@ data class Pronouns(
          * Note: For the reflexive form, Oxford Dictionary gives "themself", but "theirself" might sometimes feel
          * more natural
          */
-        val THIRD_PERSON_SINGULAR_NON_BINARY = Pronouns("they", "them", "theirs", "their", "themself")
+        val THIRD_PERSON_SINGULAR_NON_BINARY = Pronouns("S", "they", "them", "theirs", "their", "themself")
 
         /**
          * Pronouns used for an unknown or grammatically neuter, plural entity.
          */
-        val THIRD_PERSON_PLURAL_NEUTER = Pronouns("they", "them", "theirs", "their", "themselves")
+        val THIRD_PERSON_PLURAL_NEUTER = Pronouns("NPl", "they", "them", "theirs", "their", "themselves")
 
         /**
          * Pronouns used for a second person singular entity (direct address to one reader/listener)
          */
-        val SECOND_PERSON_SINGULAR = Pronouns("you", "you", "yours", "your", "yourself")
+        val SECOND_PERSON_SINGULAR = Pronouns("S", "you", "you", "yours", "your", "yourself")
 
         /**
          *
          */
-        val FIRST_PERSON_SINGULAR = Pronouns("I", "I", "mine", "my", "myself")
+        val FIRST_PERSON_SINGULAR = Pronouns("S", "I", "I", "mine", "my", "myself")
 
     }
 

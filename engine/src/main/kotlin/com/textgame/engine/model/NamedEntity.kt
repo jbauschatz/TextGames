@@ -15,7 +15,7 @@ open class NamedEntity(
 
         val name: NounPhrase,
 
-        val pronouns: Pronouns
+        val pronouns: Pronouns?
 ) {
 
     companion object {

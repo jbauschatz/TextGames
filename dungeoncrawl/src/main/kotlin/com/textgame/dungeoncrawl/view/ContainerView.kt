@@ -8,7 +8,7 @@ import com.textgame.engine.model.nounphrase.Pronouns
 class ContainerView private constructor(
         id: Int,
         name: NounPhrase,
-        pronouns: Pronouns,
+        pronouns: Pronouns?,
         val slots: Map<String, List<ItemView>>
 ): NamedEntity(id, name, pronouns) {
 
