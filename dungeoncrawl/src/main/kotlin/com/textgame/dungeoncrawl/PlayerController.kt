@@ -15,7 +15,7 @@ import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.NamedEntity.Companion.nextId
-import com.textgame.engine.model.Person
+import com.textgame.engine.model.GrammaticalPerson
 import com.textgame.engine.model.nounphrase.Definite
 import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
@@ -66,7 +66,7 @@ class PlayerController(
         player.strategy = this
 
         // Configure second person narration for the Player
-        realizer.overridePerson(player, Person.SECOND)
+        realizer.overridePerson(player, GrammaticalPerson.SECOND)
 
         // Player's starting items should be known objects in the Narrative Frame
         player.inventory.members.forEach {
@@ -321,7 +321,7 @@ class PlayerController(
         }
 
         // Start fresh with pronouns due to the interruption in flow
-        realizer.resetRecentPronouns()
+        realizer.clearPronounHistory()
     }
 
 }

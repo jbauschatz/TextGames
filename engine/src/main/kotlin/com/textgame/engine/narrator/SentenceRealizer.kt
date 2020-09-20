@@ -4,7 +4,7 @@ import com.textgame.engine.FormattingUtil.Companion.formatList
 import com.textgame.engine.model.Case
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.NounFunction
-import com.textgame.engine.model.Person
+import com.textgame.engine.model.GrammaticalPerson
 import com.textgame.engine.model.nounphrase.*
 import com.textgame.engine.model.predicate.SentencePredicate
 import com.textgame.engine.model.predicate.VerbMultipleObjects
@@ -47,29 +47,33 @@ class SentenceRealizer(
      * This allows sentences to be realized in first or second person for a particular entity, for example a protagonist
      * or player character.
      */
-    private val personOverride: MutableMap<NamedEntity, Person> = HashMap()
-
-    /**
-     * Overrides the grammatical person of a [NamedEntity].
-     *
-     * For example, to narrate the player's actions in 2nd person
-     */
-    private val personPronouns: Map<Person, Pronouns> = mapOf(
-            Pair(Person.SECOND, Pronouns.SECOND_PERSON_SINGULAR)
-    )
+    private val personOverride: MutableMap<NamedEntity, GrammaticalPerson> = HashMap()
 
     /**
      * Records the entity that was referred to most recently, per pronoun.
      */
-    private val pronounUsage: PronounContext = PronounContext()
+    private val pronounContext: PronounContext = PronounContext()
+
+    /**
+     * Configure the pronouns to be used when referring to the given entity.
+     *
+     * These pronouns will ALWAYS be used to refer to the entity, rather than its name or stated pronouns.
+     * Use this typically to designate one entity as "you" or "I" throughout a narrative.
+     */
+    fun overridePerson(entity: NamedEntity, person: GrammaticalPerson) {
+        personOverride[entity] = person
+
+        // Make sure pronoun usage reflects the grammatical person
+        pronounContext.overridePerson(entity, person)
+    }
 
     /**
      * Clears the record of recent [Pronouns] usage.
      *
      * This means any [NamedEntity] will be referred to at least one time by name before any of its [Pronouns] will be used
      */
-    fun resetRecentPronouns() {
-        pronounUsage.clear()
+    fun clearPronounHistory() {
+        pronounContext.clearHistory()
     }
 
     /**
@@ -112,7 +116,7 @@ class SentenceRealizer(
         val builder = StringBuilder()
 
         // Conjugate the verb given the subject's person
-        val person = personOverride[subject] ?: Person.THIRD
+        val person = personOverride[subject] ?: GrammaticalPerson.THIRD
         val conjugatedVerb = predicate.verb.conjugate(person, Tense.SIMPLE_PRESENT)
         builder.append(conjugatedVerb)
 
@@ -153,7 +157,7 @@ class SentenceRealizer(
         val builder = StringBuilder()
 
         // Conjugate the verb given the subject's person
-        val person = personOverride[subject] ?: Person.THIRD
+        val person = personOverride[subject] ?: GrammaticalPerson.THIRD
         val conjugatedVerb = predicate.verb.conjugate(person, Tense.SIMPLE_PRESENT)
         builder.append(conjugatedVerb)
                 .append(" ")
@@ -182,16 +186,6 @@ class SentenceRealizer(
     }
 
     /**
-     * Configure the pronouns to be used when referring to the given entity.
-     *
-     * These pronouns will ALWAYS be used to refer to the entity, rather than its name or stated pronouns.
-     * Use this typically to designate one entity as "you" or "I" throughout a narrative.
-     */
-    fun overridePerson(entity: NamedEntity, person: Person) {
-        personOverride[entity] = person
-    }
-
-    /**
      * Determine how to refer to a [NamedEntity] in the context of the narrative.
      *
      * This is functionality is a major determiner of the character of the narration.
@@ -209,33 +203,30 @@ class SentenceRealizer(
     private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case, function: NounFunction): NounPhrase {
         val name: NounPhrase
 
-        if (case == Case.ACCUSATIVE && entity == subjectOfSentence && entity.pronouns != null) {
+        val pronouns = pronounContext.getPronouns(entity)
+
+        if (case == Case.ACCUSATIVE && entity == subjectOfSentence && pronouns != null) {
             // If the Subject and Direct Object are the same, refer to the Direct Object via reflexive pronoun
-            // This may be the entity's native pronoun, or one configured via [overridePerson(NamedEntity, Pronouns)]
-            if (personOverride.containsKey(entity)) {
-                val pronouns = personPronouns[personOverride[entity]]
-                name = pronouns!!.reflexive
-            } else {
-                name = entity.pronouns.reflexive
-            }
-        } else if (pronounUsage.shouldUsePronouns(entity, entity.pronouns, function)) {
+            name = pronouns.reflexive
+        } else if (pronounContext.shouldUsePronouns(entity)) {
             // Use a pronoun if it would be unambiguous in context
-            name = entity.pronouns!!.get(case)
+            name = pronouns!!.get(case)
         } else if (
             narrativeContext.isKnownEntity(entity) &&
                     entity.isOwnedBy(subjectOfSentence) &&
                     subjectOfSentence.pronouns != null
         ) {
             // Indicate a possessive form
+            // TODO let the pronoun context decide which possessive to use
             name = Adjective(
                     if (!debug) subjectOfSentence.pronouns.possessiveDeterminer.value
                             else buildDebugPossessiveDeterminer(subjectOfSentence),
                     entity.name.head()
             )
-        } else if (personOverride.containsKey(entity)) {
+        } /*else if (personOverride.containsKey(entity)) {
             // Use a special pronoun if one is configured for this entity
             name = personPronouns[personOverride[entity]]!!.get(case)
-        }  else if (narrativeContext.isKnownEntity(entity)) {
+        }*/  else if (narrativeContext.isKnownEntity(entity)) {
             // Use a short, definite name if the entity is known
             name = entity.name.head().definite()
         } else {
@@ -245,7 +236,7 @@ class SentenceRealizer(
 
         // Track that this entity was named, so it will affect how future entities are named
         narrativeContext.addKnownEntity(entity)
-        pronounUsage.recordPronounUsage(entity, entity.pronouns, function)
+        pronounContext.recordPronounUsage(entity, function)
 
         val nameString = NounPhraseFormatter.format(name)
         return if (!debug) name else Noun("$nameString(${buildDebugName(entity)})")

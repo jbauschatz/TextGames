@@ -101,7 +101,7 @@ data class Pronouns(
         /**
          *
          */
-        val FIRST_PERSON_SINGULAR = Pronouns("S", "I", "I", "mine", "my", "myself")
+        val FIRST_PERSON_SINGULAR = Pronouns("S", "I", "me", "mine", "my", "myself")
 
     }
 

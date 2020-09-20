@@ -1,6 +1,6 @@
 package com.textgame.engine.model.verb
 
-import com.textgame.engine.model.Person
+import com.textgame.engine.model.GrammaticalPerson
 
 data class Verb(
 
@@ -15,11 +15,11 @@ data class Verb(
         val presentOtherPersons: String
 ) {
 
-    fun conjugate(person: Person, tense: Tense): String {
+    fun conjugate(person: GrammaticalPerson, tense: Tense): String {
         if (tense != Tense.SIMPLE_PRESENT)
             throw NotImplementedError("Only Simple Present conjugation is currently supported")
 
-        if (person == Person.THIRD)
+        if (person == GrammaticalPerson.THIRD)
             return presentSingularThirdPerson;
 
         return presentOtherPersons;

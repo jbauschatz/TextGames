@@ -1,6 +1,6 @@
 package com.textgame.engine.narrator
 
-import com.textgame.engine.model.Person
+import com.textgame.engine.model.GrammaticalPerson
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_PLURAL_NEUTER
@@ -126,7 +126,7 @@ class SentenceRealizerTest {
     fun realize_pronounOverride() {
         // GIVEN a Sentence whose Subject has an overridden pronoun
         val subject = TestNamedEntity(1, Noun("boy"), THIRD_PERSON_SINGULAR_MASCULINE)
-        sentenceRealizer.overridePerson(subject, Person.SECOND)
+        sentenceRealizer.overridePerson(subject, GrammaticalPerson.SECOND)
 
         val sentence = SimpleSentence(
                 subject,
@@ -147,7 +147,7 @@ class SentenceRealizerTest {
     fun realize_reflexiveWithOverride() {
         // GIVEN a Sentence whose Subject and Object are the same entity
         val subjectObject = TestNamedEntity(1, Noun("girl"), THIRD_PERSON_SINGULAR_FEMININE)
-        sentenceRealizer.overridePerson(subjectObject, Person.SECOND)
+        sentenceRealizer.overridePerson(subjectObject, GrammaticalPerson.SECOND)
 
         val sentence = SimpleSentence(
                 subjectObject,
@@ -199,7 +199,7 @@ class SentenceRealizerTest {
         val directObject = TestNamedEntity(2, Noun("ball"), THIRD_PERSON_PLURAL_NEUTER)
         val objectOfPreposition = TestNamedEntity(3, ProperNoun("Jack"), THIRD_PERSON_SINGULAR_MASCULINE)
 
-        sentenceRealizer.overridePerson(objectOfPreposition, Person.SECOND)
+        sentenceRealizer.overridePerson(objectOfPreposition, GrammaticalPerson.SECOND)
 
         val sentence = SimpleSentence(
                 subject,

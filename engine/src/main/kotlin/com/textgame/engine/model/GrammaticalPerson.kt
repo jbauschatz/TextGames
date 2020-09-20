@@ -5,7 +5,7 @@ package com.textgame.engine.model
  *
  * That can determine how to conjugate a verb, as well as which pronoun to use when referring to an entity.
  */
-enum class Person {
+enum class GrammaticalPerson {
 
     /**
      * First person.
