@@ -219,19 +219,28 @@ class SentenceRealizer(
                 name = entity.pronouns.reflexive
             }
         } else if (pronounUsage.shouldUsePronouns(entity, entity.pronouns, function)) {
+            // Use a pronoun if it would be unambiguous in context
             name = entity.pronouns!!.get(case)
+        } else if (
+            narrativeContext.isKnownEntity(entity) &&
+                    entity.isOwnedBy(subjectOfSentence) &&
+                    subjectOfSentence.pronouns != null
+        ) {
+            // Indicate a possessive form
+            name = Adjective(
+                    if (!debug) subjectOfSentence.pronouns.possessiveDeterminer.value
+                            else buildDebugPossessiveDeterminer(subjectOfSentence),
+                    entity.name.head()
+            )
+        } else if (personOverride.containsKey(entity)) {
+            // Use a special pronoun if one is configured for this entity
+            name = personPronouns[personOverride[entity]]!!.get(case)
+        }  else if (narrativeContext.isKnownEntity(entity)) {
+            // Use a short, definite name if the entity is known
+            name = entity.name.head().definite()
         } else {
-            name = when {
-                narrativeContext.isKnownEntity(entity) && entity.isOwnedBy(subjectOfSentence) && subjectOfSentence.pronouns != null ->
-                    Adjective(
-                            if (!debug) subjectOfSentence.pronouns.possessiveDeterminer.value
-                                    else buildDebugPossessiveDeterminer(subjectOfSentence),
-                            entity.name
-                    )
-                personOverride.containsKey(entity) -> personPronouns[personOverride[entity]]!!.get(case)
-                narrativeContext.isKnownEntity(entity) -> entity.name.head().definite()
-                else -> entity.name.indefinite()
-            }
+            // Use a full, indefinite name for a brand new entity
+            name = entity.name.indefinite()
         }
 
         // Track that this entity was named, so it will affect how future entities are named
