@@ -1,7 +1,22 @@
-# Project Overview
+# Introduction
 This is a framework for producing narration in a text-based adventure game (or other work of interactive fiction). The project aims to produce high quality narration, with a hand-written feel, programmatically from the smallest building blocks possible. Narration for each round of combat (or other game events) should feel more like a hand-written paragraph than a series of notifications in an event log.
 
-To accomplish this, the framework includes datastructure to represent English sentences, as well as a system for transforming game events into basic sentences. The engine's embedded grammatical rules act on these simple sentences to create a more complicated narrative, ideally with complex emergent behavior.
+## Running
+To play the example game, run:
+
+```shell script
+./gradlew playGame
+```
+
+To generate a session of ai-driven gameplay, run:
+
+```shell script
+./gradlew aiPlay
+```
+
+# Project Goals
+
+The framework includes datastructure to represent English sentences, as well as a system for transforming game events into basic sentences. The engine's embedded grammatical rules act on these simple sentences to create a more complicated narrative, ideally with complex emergent behavior.
 
 ### Complex sentences
 Many text-based games narrate individual events in a rapid-fire fashion. Example:

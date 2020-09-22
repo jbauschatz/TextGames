@@ -16,7 +16,7 @@ dependencies {
     implementation(project(":engine"))
     implementation(kotlin("stdlib-jdk8"))
 
-    compile("org.yaml:snakeyaml:1.21")
+    implementation("org.yaml:snakeyaml:1.21")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.4.2")
@@ -35,4 +35,18 @@ configure<JavaPluginConvention> {
 }
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+task<JavaExec>("playGame") {
+    main = "com.textgame.dungeoncrawl.Main"
+    classpath = sourceSets["main"].runtimeClasspath
+    standardInput = System.`in` // Forward standard input to the Java task
+}
+
+task<JavaExec>("aiPlay") {
+    main = "com.textgame.dungeoncrawl.Main"
+    classpath = sourceSets["main"].runtimeClasspath
+    standardInput = System.`in` // Forward standard input to the Java task
+
+    args("--ai")
 }
