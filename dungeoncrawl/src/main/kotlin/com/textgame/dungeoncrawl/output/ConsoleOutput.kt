@@ -24,7 +24,7 @@ class ConsoleOutput(
         beginParagraph()
         write(string.split(" "))
         out.println(lineBuilder)
-        println()
+        out.println()
     }
 
     override fun printParagraph(paragraph: Paragraph) {
@@ -49,19 +49,21 @@ class ConsoleOutput(
         beginParagraph()
         write(words)
         out.println(lineBuilder)
-        println()
+        out.println()
     }
 
     private fun write(elements: List<String>) {
+        var firstWordInParagraph = true
         for (element in elements) {
             for (word in element.split(" ")) {
                 val wordLength = length(word)
+                val precedingSpace = if (!firstWordInParagraph) " " else ""
                 when {
                     // TODO no space before the first word in a line
-                    width + wordLength + 1 <= consoleWidth -> {
+                    width + wordLength + precedingSpace.length <= consoleWidth -> {
                         // This word, plus a space, fits on the line
-                        lineBuilder.append(" ").append(word)
-                        width += wordLength + 1
+                        lineBuilder.append(precedingSpace).append(word)
+                        width += wordLength + precedingSpace.length
                     }
                     else -> {
                         lineBuilder.appendln()
@@ -69,6 +71,7 @@ class ConsoleOutput(
                         lineBuilder.append(word)
                     }
                 }
+                firstWordInParagraph = false
             }
         }
     }
@@ -76,10 +79,6 @@ class ConsoleOutput(
     private fun beginParagraph() {
         lineBuilder = StringBuilder().append(" ".repeat(indent))
         width = indent
-    }
-
-    override fun println() {
-        out.println()
     }
 
     fun length(string: String): Int {

@@ -8,5 +8,4 @@ interface GameOutput {
 
     fun println(string: String)
 
-    fun println()
 }
