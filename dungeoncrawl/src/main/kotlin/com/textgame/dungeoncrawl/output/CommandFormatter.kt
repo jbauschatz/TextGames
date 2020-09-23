@@ -2,7 +2,7 @@ package com.textgame.dungeoncrawl.output
 
 import com.textgame.dungeoncrawl.CommandParser
 import com.textgame.dungeoncrawl.command.*
-import com.textgame.engine.model.nounphrase.NounPhraseFormatter
+import com.textgame.engine.format.DefaultNounPhraseFormatter
 
 class CommandFormatter {
 
@@ -16,13 +16,13 @@ class CommandFormatter {
          */
         fun format(command: GameCommand): String =
                 when (command) {
-                    is AttackCommand -> "attack ${NounPhraseFormatter.format(command.defender.name)}"
-                    is UnequipItemCommand -> "unequip ${NounPhraseFormatter.format(command.item.name)}"
-                    is UseItemCommand -> "use ${NounPhraseFormatter.format(command.item.name)}"
-                    is MoveCommand -> "go ${NounPhraseFormatter.format(command.direction.name)}"
+                    is AttackCommand -> "attack ${DefaultNounPhraseFormatter.format(command.defender.name)}"
+                    is UnequipItemCommand -> "unequip ${DefaultNounPhraseFormatter.format(command.item.name)}"
+                    is UseItemCommand -> "use ${DefaultNounPhraseFormatter.format(command.item.name)}"
+                    is MoveCommand -> "go ${DefaultNounPhraseFormatter.format(command.direction.name)}"
                     is LookCommand -> "look"
-                    is EquipItemCommand -> "equip ${NounPhraseFormatter.format(command.item.name)}"
-                    is TakeItemCommand -> "take ${NounPhraseFormatter.format(command.item.name)}"
+                    is EquipItemCommand -> "equip ${DefaultNounPhraseFormatter.format(command.item.name)}"
+                    is TakeItemCommand -> "take ${DefaultNounPhraseFormatter.format(command.item.name)}"
                     is WaitCommand -> "wait"
                     else -> "help"
                 }

@@ -1,10 +1,9 @@
 package com.textgame.engine.narrator
 
 import com.textgame.engine.FormattingUtil.Companion.formatList
-import com.textgame.engine.model.Case
-import com.textgame.engine.model.NamedEntity
-import com.textgame.engine.model.NounFunction
-import com.textgame.engine.model.GrammaticalPerson
+import com.textgame.engine.format.DefaultNounPhraseFormatter
+import com.textgame.engine.format.NounPhraseFormatter
+import com.textgame.engine.model.*
 import com.textgame.engine.model.nounphrase.*
 import com.textgame.engine.model.predicate.SentencePredicate
 import com.textgame.engine.model.predicate.VerbMultipleObjects
@@ -81,27 +80,26 @@ class SentenceRealizer(
      *
      * This will include proper punctuation and word order, and meaningful, unambiguous names for all entities.
      */
-    fun realize(sentence: Sentence): String =
+    fun realize(sentence: Sentence): List<SentenceElement> =
             when (sentence) {
                 is SimpleSentence -> realizeSimpleSentence(sentence)
                 else -> throw IllegalArgumentException("Unrecognized Sentence type ${sentence.javaClass}")
             }
 
-    private fun realizeSimpleSentence(sentence: SimpleSentence): String {
-        val builder = StringBuilder()
+    private fun realizeSimpleSentence(sentence: SimpleSentence): List<SentenceElement> {
+        val elements = mutableListOf<SentenceElement>()
 
         // Refer to the subject
         val subjectName = referToEntity(sentence.subject, sentence.subject, Case.NOMINATIVE, NounFunction.SUBJECT)
-        builder.append(NounPhraseFormatter.format(subjectName, true))
-                .append(" ")
+        elements.add(subjectName)
 
         // Realize the sentence's Predicate
-        builder.append(realizePredicate(sentence.predicate, sentence.subject))
+        elements.addAll(realizePredicate(sentence.predicate, sentence.subject))
 
         // Apply punctuation at the end of the sentence
-        builder.append(".")
+        elements.add(PunctuationElement("."))
 
-        return builder.toString()
+        return elements
     }
 
     private fun realizePredicate(predicate: SentencePredicate, subject: NamedEntity) =
@@ -112,20 +110,19 @@ class SentenceRealizer(
                 else -> throw IllegalArgumentException("Invalid predicate type: ${predicate.javaClass}")
             }
 
-    private fun realizeVerbPredicate(predicate: VerbPredicate, subject: NamedEntity): String {
-        val builder = StringBuilder()
+    private fun realizeVerbPredicate(predicate: VerbPredicate, subject: NamedEntity): List<SentenceElement> {
+        val elements = mutableListOf<SentenceElement>()
 
         // Conjugate the verb given the subject's person
         val person = personOverride[subject] ?: GrammaticalPerson.THIRD
         val conjugatedVerb = predicate.verb.conjugate(person, Tense.SIMPLE_PRESENT)
-        builder.append(conjugatedVerb)
+        elements.add(TextElement(conjugatedVerb))
 
         // Include the Direct Object (if present)
         predicate.directObject?.let {
             val directObjectName = referToEntity(predicate.directObject, subject, Case.ACCUSATIVE, NounFunction.DIRECT_OBJECT)
 
-            builder.append(" ")
-                    .append(NounPhraseFormatter.format(directObjectName))
+            elements.add(directObjectName)
         }
 
         // Include the Prepositional Phrase (if present)
@@ -136,53 +133,47 @@ class SentenceRealizer(
                     Case.ACCUSATIVE,
                     NounFunction.OBJECT_OF_PREPOSITION
             )
-            builder.append(" ")
-                    .append(predicate.prepositionalPhrase.preposition)
-                    .append(" ")
-                    .append(NounPhraseFormatter.format(objectOfPrepositionName))
+            elements.add(TextElement(predicate.prepositionalPhrase.preposition))
+            elements.add(objectOfPrepositionName)
         }
 
-        return builder.toString()
+        return elements
     }
 
-    private fun realizeVerbPredicates(predicate: Predicates, subject: NamedEntity): String {
-        val predicateStrings = predicate.predicates.map {
+    private fun realizeVerbPredicates(predicate: Predicates, subject: NamedEntity): List<SentenceElement> =
+        flattenElementList(predicate.predicates.map {
             realizeVerbPredicate(it, subject)
-        }
+        })
 
-        return formatList(predicateStrings)
-    }
-
-    private fun realizeMultipleObjects(predicate: VerbMultipleObjects, subject: NamedEntity): String {
-        val builder = StringBuilder()
+    private fun realizeMultipleObjects(predicate: VerbMultipleObjects, subject: NamedEntity): List<SentenceElement> {
+        val elements = mutableListOf<SentenceElement>()
 
         // Conjugate the verb given the subject's person
         val person = personOverride[subject] ?: GrammaticalPerson.THIRD
         val conjugatedVerb = predicate.verb.conjugate(person, Tense.SIMPLE_PRESENT)
-        builder.append(conjugatedVerb)
-                .append(" ")
+        elements.add(TextElement(conjugatedVerb))
 
         // Include the Direct Object (if present)
-        val formattedDirectObjectNames = predicate.directObjects.map {
-            NounPhraseFormatter.format(referToEntity(it, subject, Case.ACCUSATIVE, NounFunction.DIRECT_OBJECT))
-        }
-        builder.append(formatList(formattedDirectObjectNames))
+        val directObjectNames = mutableListOf<SentenceElement>()
+        directObjectNames.addAll(predicate.directObjects.map {
+            referToEntity(it, subject, Case.ACCUSATIVE, NounFunction.DIRECT_OBJECT)
+        })
+        elements.addAll(joinElementList(directObjectNames))
 
         // Include the Prepositional Phrase (if present)
         predicate.prepositionalPhrase?.let {
+            val objectOfPreposition = predicate.prepositionalPhrase.objectOfPreposition
             val objectOfPrepositionName = referToEntity(
-                    predicate.prepositionalPhrase.objectOfPreposition,
+                    objectOfPreposition,
                     subject,
                     Case.ACCUSATIVE,
                     NounFunction.OBJECT_OF_PREPOSITION
             )
-            builder.append(" ")
-                    .append(predicate.prepositionalPhrase.preposition)
-                    .append(" ")
-                    .append(NounPhraseFormatter.format(objectOfPrepositionName))
+            elements.add(TextElement(predicate.prepositionalPhrase.preposition))
+            elements.add(objectOfPrepositionName)
         }
 
-        return builder.toString()
+        return elements
     }
 
     /**
@@ -200,7 +191,7 @@ class SentenceRealizer(
      * As a side-effect, the [NamedEntity] will be considered a known entity in the [NarrativeContext], which will change
      * how it is referred to in the future.
      */
-    private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case, function: NounFunction): NounPhrase {
+    private fun referToEntity(entity: NamedEntity, subjectOfSentence: NamedEntity, case: Case, function: NounFunction): NameElement {
         val name: NounPhrase
 
         val pronouns = pronounContext.getPronouns(entity)
@@ -223,10 +214,7 @@ class SentenceRealizer(
                             else buildDebugPossessiveDeterminer(subjectOfSentence),
                     entity.name.head()
             )
-        } /*else if (personOverride.containsKey(entity)) {
-            // Use a special pronoun if one is configured for this entity
-            name = personPronouns[personOverride[entity]]!!.get(case)
-        }*/  else if (narrativeContext.isKnownEntity(entity)) {
+        } else if (narrativeContext.isKnownEntity(entity)) {
             // Use a short, definite name if the entity is known
             name = entity.name.head().definite()
         } else {
@@ -238,8 +226,9 @@ class SentenceRealizer(
         narrativeContext.addKnownEntity(entity)
         pronounContext.recordPronounUsage(entity, function)
 
-        val nameString = NounPhraseFormatter.format(name)
-        return if (!debug) name else Noun("$nameString(${buildDebugName(entity)})")
+        val nameString = DefaultNounPhraseFormatter.format(name, entity)
+        return if (!debug) NameElement(name, entity)
+            else NameElement(Noun("$nameString(${buildDebugName(entity)})"), entity)
     }
 
     /**
@@ -247,13 +236,13 @@ class SentenceRealizer(
      */
     private fun buildDebugPossessiveDeterminer(possessor: NamedEntity) =
         possessor.pronouns!!.possessiveDeterminer.value +
-                "(${NounPhraseFormatter.format(possessor.name)}'s/${possessor.pronouns.gender})"
+                "(${DefaultNounPhraseFormatter.format(possessor.name, possessor)}'s/${possessor.pronouns.gender})"
 
     /**
      * Builds a string like "bandit/MS" to help debug names
      */
     private fun buildDebugName(entity: NamedEntity): String {
-        val nameString = NounPhraseFormatter.format(entity.name)
+        val nameString = DefaultNounPhraseFormatter.format(entity.name, entity)
         return if (entity.pronouns != null)
             "$nameString/${entity.pronouns.gender}"
         else nameString

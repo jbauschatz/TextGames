@@ -4,7 +4,7 @@ import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.output.CommandFormatter
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
-import com.textgame.engine.model.nounphrase.NounPhraseFormatter
+import com.textgame.engine.format.DefaultNounPhraseFormatter
 import enemies
 import java.lang.System.out
 import java.util.*
@@ -81,7 +81,7 @@ object CommandParser: CreatureStrategy {
         val direction = words[1]
 
         for (door in creature.location.doors) {
-            val cardinalDirectionName = NounPhraseFormatter.format(door.direction.name)
+            val cardinalDirectionName = DefaultNounPhraseFormatter.format(door.direction.name)
             if (direction.toLowerCase() == cardinalDirectionName.toLowerCase())
                 return MoveCommand(creature, door.direction)
         }

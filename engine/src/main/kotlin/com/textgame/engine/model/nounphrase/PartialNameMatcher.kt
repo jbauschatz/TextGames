@@ -1,13 +1,13 @@
 package com.textgame.engine.model.nounphrase
 
-import com.textgame.engine.model.NamedEntity
+import com.textgame.engine.format.DefaultNounPhraseFormatter
 
 class PartialNameMatcher {
 
     companion object {
 
         fun matches(name: String, nounPhrase: NounPhrase): Boolean =
-                name.toLowerCase() == NounPhraseFormatter.format(nounPhrase).toLowerCase()
+                name.toLowerCase() == DefaultNounPhraseFormatter.format(nounPhrase).toLowerCase()
                         || when (nounPhrase) {
                             is Adjective -> matchesPartially(name, nounPhrase)
                             else -> false

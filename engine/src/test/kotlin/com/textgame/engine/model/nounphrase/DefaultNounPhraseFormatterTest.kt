@@ -1,5 +1,6 @@
 package com.textgame.engine.model.nounphrase
 
+import com.textgame.engine.format.DefaultNounPhraseFormatter
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.params.ParameterizedTest
@@ -7,7 +8,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import java.util.stream.Stream
 
-class NounPhraseFormatterTest {
+class DefaultNounPhraseFormatterTest {
 
     companion object {
 
@@ -47,7 +48,7 @@ class NounPhraseFormatterTest {
     fun format_parameterized(nounPhrase: NounPhrase, capitalize: Boolean, titleCase: Boolean, expected: String) {
         assertThat(
                 "Formatted NounPhrase should equal \"$expected\"",
-                NounPhraseFormatter.format(nounPhrase, capitalize, titleCase),
+                DefaultNounPhraseFormatter.format(nounPhrase, null, capitalize, titleCase),
                 equalTo(expected)
         )
     }

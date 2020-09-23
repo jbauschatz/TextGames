@@ -7,17 +7,17 @@ import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.map.CardinalDirection.Companion.opposite
 import com.textgame.dungeoncrawl.model.sameEntity
+import com.textgame.dungeoncrawl.output.ConsoleNounPhraseFormatter
 import com.textgame.dungeoncrawl.output.GameOutput
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.dungeoncrawl.view.LocationView
 import com.textgame.engine.FormattingUtil
+import com.textgame.engine.model.GrammaticalPerson
 import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.NamedEntity.Companion.nextId
-import com.textgame.engine.model.GrammaticalPerson
 import com.textgame.engine.model.nounphrase.Definite
-import com.textgame.engine.model.nounphrase.NounPhraseFormatter
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
 import com.textgame.engine.model.nounphrase.ProperNoun
 import com.textgame.engine.model.predicate.VerbPredicate
@@ -59,6 +59,7 @@ class PlayerController(
         private val out: GameOutput
 ) : GameEventListener, CreatureStrategy {
     private val narrativeContext = NarrativeContext()
+    private val formatter = ConsoleNounPhraseFormatter
     private val realizer = SentenceRealizer(narrativeContext)
     private val narrator = Narrator(realizer)
 
@@ -125,7 +126,7 @@ class PlayerController(
         } else {
             narrativeContext.addKnownEntity(player.weapon!!)
             narrate(String.format("You are armed with %s.",
-                    NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
+                    formatter.format(player.weapon!!.name.indefinite(), player.weapon)))
         }
     }
 
@@ -144,10 +145,10 @@ class PlayerController(
         if (hasItems) {
             if (armed) {
                 narrate(String.format("You are armed with %s.",
-                        NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
+                        formatter.format(player.weapon!!.name.indefinite(), player.weapon)))
             }
 
-            val itemNames = player.inventory.members.map { NounPhraseFormatter.format(it.name.indefinite()) }
+            val itemNames = player.inventory.members.map { formatter.format(it.name.indefinite(), it) }
             narrate("You carry " + FormattingUtil.formatList(itemNames) + ".")
 
             if (!armed) {
@@ -156,7 +157,7 @@ class PlayerController(
         } else {
             if (armed) {
                 narrate(String.format("You are armed with %s, and carry nothing else.",
-                        NounPhraseFormatter.format(player.weapon!!.name.indefinite())))
+                        formatter.format(player.weapon!!.name.indefinite(), player.weapon)))
             } else {
                 narrate("You are unarmed, and carry nothing.")
             }
@@ -236,7 +237,7 @@ class PlayerController(
     }
 
     private fun describeLocation(location: LocationView) {
-        narrate(NounPhraseFormatter.format(location.name, titleCase = true, capitalize = true))
+        narrate(formatter.format(location.name, location, titleCase = true, capitalize = true))
         narrate(location.description)
 
         // List other creatures occupying the room
@@ -317,7 +318,7 @@ class PlayerController(
     private fun flushNarration() {
         val paragraphs = narrator.flushParagraphs()
         paragraphs.forEach {
-            out.println(it.sentences.joinToString(" "))
+            out.printParagraph(it)
         }
 
         // Start fresh with pronouns due to the interruption in flow

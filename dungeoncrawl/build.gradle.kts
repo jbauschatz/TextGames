@@ -16,6 +16,9 @@ dependencies {
     implementation(project(":engine"))
     implementation(kotlin("stdlib-jdk8"))
 
+    // https://mvnrepository.com/artifact/com.diogonunes/JColor
+    implementation("com.diogonunes:JColor:5.0.0")
+
     implementation("org.yaml:snakeyaml:1.21")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")

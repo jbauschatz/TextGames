@@ -13,6 +13,7 @@ import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateMap
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.humanWeapon
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.potionItem
+import com.textgame.dungeoncrawl.output.ConsoleNounPhraseFormatter
 import com.textgame.dungeoncrawl.output.ConsoleOutput
 import com.textgame.dungeoncrawl.strategy.AdventurerStrategy
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
@@ -103,7 +104,7 @@ class Game {
         }
 
         // Configure narration for the Player
-        val playerInputOutput = PlayerController(player, playerStrategy, ConsoleOutput(80))
+        val playerInputOutput = PlayerController(player, playerStrategy, ConsoleOutput(ConsoleNounPhraseFormatter, 80))
         creatureListeners[player] = playerInputOutput
 
         // Announce the game's initialization

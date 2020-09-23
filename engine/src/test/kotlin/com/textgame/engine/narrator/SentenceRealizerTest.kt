@@ -32,7 +32,7 @@ class SentenceRealizerTest {
     @BeforeEach
     fun beforeEach() {
         narrativeContext = NarrativeContext()
-        sentenceRealizer = SentenceRealizer(narrativeContext, false)
+        sentenceRealizer = SentenceRealizer(narrativeContext)
     }
 
     @Test
