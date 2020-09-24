@@ -22,6 +22,9 @@ object DefaultNounPhraseFormatter : NounPhraseFormatter {
                     getArticle(nounPhrase, capitalize) +
                         format(nounPhrase.stem, entity, false, titleCase)
                 is Pronoun -> formatMajorWord(nounPhrase.value, capitalize, titleCase)
+                is PossessivePronoun ->
+                    formatMajorWord(nounPhrase.pronoun.value, capitalize, titleCase) +
+                            " " + format(nounPhrase.head, entity, false, titleCase)
                 is Adjective ->
                     formatMajorWord(nounPhrase.value, capitalize, titleCase) +
                             " " + format(nounPhrase.stem, entity, false, titleCase)

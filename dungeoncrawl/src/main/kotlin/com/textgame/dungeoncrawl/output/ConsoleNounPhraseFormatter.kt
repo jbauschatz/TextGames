@@ -21,6 +21,13 @@ object ConsoleNounPhraseFormatter : NounPhraseFormatter {
                 getArticle(nounPhrase, capitalize) +
                         highlight(formatNoHighlight(nounPhrase.stem, false, titleCase), entity)
             is Pronoun -> formatMajorWord(nounPhrase.value, capitalize, titleCase)
+            is PossessivePronoun ->
+                formatMinorWord(nounPhrase.pronoun.value, capitalize) +
+                    " " +
+                    highlight(
+                        formatNoHighlight(nounPhrase.head, false, titleCase),
+                        entity
+                    )
             is Adjective ->
                 highlight(
                         formatMajorWord(nounPhrase.value, capitalize, titleCase) +

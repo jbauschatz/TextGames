@@ -209,8 +209,8 @@ class SentenceRealizer(
         ) {
             // Indicate a possessive form
             // TODO let the pronoun context decide which possessive to use
-            name = Adjective(
-                    if (!debug) subjectOfSentence.pronouns.possessiveDeterminer.value
+            name = PossessivePronoun(
+                    if (!debug) subjectOfSentence.pronouns.possessiveDeterminer
                             else buildDebugPossessiveDeterminer(subjectOfSentence),
                     entity.name.head()
             )
@@ -235,8 +235,8 @@ class SentenceRealizer(
      * Builds a string like "her(Lydia's)" to help debug possessive determiners
      */
     private fun buildDebugPossessiveDeterminer(possessor: NamedEntity) =
-        possessor.pronouns!!.possessiveDeterminer.value +
-                "(${DefaultNounPhraseFormatter.format(possessor.name, possessor)}'s/${possessor.pronouns.gender})"
+        Pronoun(possessor.pronouns!!.possessiveDeterminer.value +
+                "(${DefaultNounPhraseFormatter.format(possessor.name, possessor)}'s/${possessor.pronouns.gender})")
 
     /**
      * Builds a string like "bandit/MS" to help debug names

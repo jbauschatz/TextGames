@@ -539,7 +539,7 @@ class SentenceRealizerTest {
         assertThat(elements, contains(
                 NameElement(Indefinite(Noun("dog")), dog),
                 TextElement("eats"),
-                NameElement(Adjective("his", Noun("bone")), bone),
+                NameElement(PossessivePronoun(Pronoun("his"), Noun("bone")), bone),
                 PunctuationElement(".")
         ))
     }
@@ -569,7 +569,7 @@ class SentenceRealizerTest {
         assertThat(elements, contains(
                 NameElement(Definite(Noun("dog")), dog),
                 TextElement("finds"),
-                NameElement(Adjective("his", Noun("bone")), bone),
+                NameElement(PossessivePronoun(Pronoun("his"), Noun("bone")), bone),
                 PunctuationElement(","),
                 TextElement("and"),
                 TextElement("eats"),
@@ -607,7 +607,7 @@ class SentenceRealizerTest {
                 TextElement("swats"),
                 NameElement(Indefinite(Noun("dog")), dog),
                 TextElement("with"),
-                NameElement(Adjective("her", Noun("paw")), paw),
+                NameElement(PossessivePronoun(Pronoun("her"), Noun("paw")), paw),
                 PunctuationElement(".")
         ))
     }
