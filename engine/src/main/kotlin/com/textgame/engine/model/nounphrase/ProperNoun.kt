@@ -2,7 +2,7 @@ package com.textgame.engine.model.nounphrase
 
 import com.textgame.engine.WordUtil
 
-class ProperNoun constructor(
+data class ProperNoun constructor(
         val value: String,
         private val startsWithVowelSound: Boolean
 ): NounPhrase {

@@ -1,22 +1,21 @@
 package com.textgame.engine.narrator
 
 import com.textgame.engine.model.GrammaticalPerson
-import com.textgame.engine.model.nounphrase.Adjective
-import com.textgame.engine.model.nounphrase.Noun
+import com.textgame.engine.model.nounphrase.*
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_PLURAL_NEUTER
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_FEMININE
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_MASCULINE
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
-import com.textgame.engine.model.nounphrase.ProperNoun
+import com.textgame.engine.model.predicate.Predicates
 import com.textgame.engine.model.predicate.VerbMultipleObjects
 import com.textgame.engine.model.predicate.VerbPredicate
-import com.textgame.engine.model.predicate.Predicates
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
 import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.test.TestNamedEntity
 import com.textgame.test.*
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -44,10 +43,15 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be referenced by their proper names
-        assertThat(string, equalTo("Jack sees Jill."))
+        assertThat(elements, contains(
+                NameElement(ProperNoun("Jack"), JACK),
+                TextElement("sees"),
+                NameElement(ProperNoun("Jill"), JILL),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -65,10 +69,15 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be indefinite, and now added to the Narrative Context
-        assertThat(string, equalTo("A dog chases a ball."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("dog")), subject),
+                TextElement("chases"),
+                NameElement(Indefinite(Noun("ball")), directObject),
+                PunctuationElement(".")
+        ))
         assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subject), equalTo(true))
         assertThat("DirectObject should be in narrative context", narrativeContext.isKnownEntity(directObject), equalTo(true))
     }
@@ -91,10 +100,15 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to be definite
-        assertThat(string, equalTo("The dog chases the ball."))
+        assertThat(elements, contains(
+                NameElement(Definite(Noun("dog")), subject),
+                TextElement("chases"),
+                NameElement(Definite(Noun("ball")), directObject),
+                PunctuationElement(".")
+        ))
 
         assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subject), equalTo(true))
         assertThat("DirectObject should be in narrative context", narrativeContext.isKnownEntity(directObject), equalTo(true))
@@ -114,10 +128,15 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the Direct Object to be the reflexive pronoun
-        assertThat(string, equalTo("A girl hurts herself."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("girl")), subjectObject),
+                TextElement("hurts"),
+                NameElement(Pronoun("herself"), subjectObject),
+                PunctuationElement(".")
+        ))
 
         assertThat("Subject should be in narrative context", narrativeContext.isKnownEntity(subjectObject), equalTo(true))
     }
@@ -128,19 +147,26 @@ class SentenceRealizerTest {
         val subject = TestNamedEntity(1, Noun("boy"), THIRD_PERSON_SINGULAR_MASCULINE)
         sentenceRealizer.overridePerson(subject, GrammaticalPerson.SECOND)
 
+        val directObject = TestNamedEntity(2, Noun("sword"), THIRD_PERSON_PLURAL_NEUTER)
+
         val sentence = SimpleSentence(
                 subject,
                 VerbPredicate(
                         Verb("draws", "draw"),
-                        TestNamedEntity(2, Noun("sword"), THIRD_PERSON_PLURAL_NEUTER)
+                        directObject
                 )
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject to use the overridden pronouns
-        assertThat(string, equalTo("You draw a sword."))
+        assertThat(elements, contains(
+                NameElement(Pronoun("you"), subject),
+                TextElement("draw"),
+                NameElement(Indefinite(Noun("sword")), directObject),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -158,36 +184,47 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the Subject and Direct Object to use the specified pronouns, and the DO to be reflexive
-        assertThat(string, equalTo("You hurt yourself."))
+        assertThat(elements, contains(
+                NameElement(Pronoun("you"), subjectObject),
+                TextElement("hurt"),
+                NameElement(Pronoun("yourself"), subjectObject),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
     fun realize_prepositionalPhrase() {
         // GIVEN a Sentence with a Subject, Object, and Prepositional Phrase
-        val subject = TestNamedEntity(1, Noun("dog"), THIRD_PERSON_SINGULAR_FEMININE)
-        val directObject = TestNamedEntity(2, Noun("ball"), THIRD_PERSON_PLURAL_NEUTER)
-        val objectOfPreposition = TestNamedEntity(3, ProperNoun("Jack"), THIRD_PERSON_SINGULAR_MASCULINE)
+        val subject = TestNamedEntity(-1, Noun("dog"), THIRD_PERSON_SINGULAR_FEMININE)
+        val directObject = TestNamedEntity(-2, Noun("ball"), THIRD_PERSON_PLURAL_NEUTER)
 
         val sentence = SimpleSentence(
                 subject,
                 VerbPredicate(
                         Verb("gives", "give"),
                         directObject,
-                        PrepositionalPhrase("to", objectOfPreposition)
+                        PrepositionalPhrase("to", JACK)
                 )
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the prepositional phrase to be included at the end of the sentence
-        assertThat(string, equalTo("A dog gives a ball to Jack."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("dog")), subject),
+                TextElement("gives"),
+                NameElement(Indefinite(Noun("ball")), directObject),
+                TextElement("to"),
+                NameElement(ProperNoun("Jack"), JACK),
+                PunctuationElement(".")
+        ))
         assertThat(
                 "Object of Preposition should be in narrative context",
-                narrativeContext.isKnownEntity(objectOfPreposition),
+                narrativeContext.isKnownEntity(JACK),
                 equalTo(true)
         )
     }
@@ -211,10 +248,17 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the object of the preposition to be referred to by the specified pronoun
-        assertThat(string, equalTo("A dog gives a ball to you."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("dog")), subject),
+                TextElement("gives"),
+                NameElement(Indefinite(Noun("ball")), directObject),
+                TextElement("to"),
+                NameElement(Pronoun("you"), objectOfPreposition),
+                PunctuationElement(".")
+        ))
         assertThat(
                 "Object of Preposition should be in narrative context",
                 narrativeContext.isKnownEntity(objectOfPreposition),
@@ -239,10 +283,21 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the noun's pronoun to be used after the prepositional phrase
-        assertThat(string, equalTo("Jack sees an apple on a hill and eats it."))
+        assertThat(elements, contains(
+                NameElement(ProperNoun("Jack"), JACK),
+                TextElement("sees"),
+                NameElement(Indefinite(Noun("apple")), APPLE),
+                TextElement("on"),
+                NameElement(Indefinite(Noun("hill")), HILL),
+                PunctuationElement(","),
+                TextElement("and"),
+                TextElement("eats"),
+                NameElement(Pronoun("it"), APPLE),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -263,32 +318,46 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the entities to be referred to by simplified, definite names
-        assertThat(string, equalTo("The dog chases the ball."))
+        assertThat(elements, contains(
+                NameElement(Definite(Noun("dog")), subject),
+                TextElement("chases"),
+                NameElement(Definite(Noun("ball")), directObject),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
     fun realize_twoVerbalClauses() {
         // GIVEN a sentence with two verbal clauses
-        val jack = TestNamedEntity(1, ProperNoun("Jack"), THIRD_PERSON_SINGULAR_MASCULINE)
-        val hill = TestNamedEntity(2, Noun("hill"), THIRD_PERSON_SINGULAR_NEUTER)
+        val waterPail = TestNamedEntity(-1, Adjective("water", Noun("pail")), THIRD_PERSON_SINGULAR_NEUTER)
 
         val sentence = SimpleSentence(
-                jack,
+                JACK,
                 Predicates(listOf(
-                        VerbPredicate(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", hill)),
-                        VerbPredicate(Verb("fills", "fill"), TestNamedEntity(3, Adjective("water", Noun("pail")), THIRD_PERSON_SINGULAR_NEUTER))
+                        VerbPredicate(Verb("runs", "run"), prepositionalPhrase = PrepositionalPhrase("up", HILL)),
+                        VerbPredicate(Verb("fills", "fill"), waterPail)
                 ))
         )
-        narrativeContext.addKnownEntity(hill)
+        narrativeContext.addKnownEntity(HILL)
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the two sub-clauses to be joined together after the subject
-        assertThat(string, equalTo("Jack runs up the hill and fills a water pail."))
+        assertThat(elements, contains(
+                NameElement(ProperNoun("Jack"), JACK),
+                TextElement("runs"),
+                TextElement("up"),
+                NameElement(Definite(Noun("hill")), HILL),
+                PunctuationElement(","),
+                TextElement("and"),
+                TextElement("fills"),
+                NameElement(Indefinite(Adjective("water", Noun("pail"))), waterPail),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -305,53 +374,89 @@ class SentenceRealizerTest {
         narrativeContext.addKnownEntity(HILL)
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the three sub-clauses to be joined together by commas after the subject
-        assertThat(string, equalTo("Jack goes up the hill, fills a pail with water, and gives it to Jill."))
+        assertThat(elements, contains(
+                NameElement(ProperNoun("Jack"), JACK),
+                TextElement("goes"),
+                TextElement("up"),
+                NameElement(Definite(Noun("hill")), HILL),
+                PunctuationElement(","),
+                TextElement("fills"),
+                NameElement(Indefinite(Noun("pail")), PAIL),
+                TextElement("with"),
+                NameElement(ProperNoun("water"), WATER),
+                PunctuationElement(","),
+                TextElement("and"),
+                TextElement("gives"),
+                NameElement(Pronoun("it"), PAIL),
+                TextElement("to"),
+                NameElement(ProperNoun("Jill"), JILL),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
     fun realize_verbWithTwoObjects() {
         // GIVEN a sentence with a verb and two direct objects
+        val girl = TestNamedEntity(1, Noun("girl"), THIRD_PERSON_SINGULAR_FEMININE)
+        val steak = TestNamedEntity(2, Noun("steak"), THIRD_PERSON_SINGULAR_NEUTER)
+        val potato = TestNamedEntity(3, Noun("potato"), THIRD_PERSON_SINGULAR_NEUTER)
+
         val sentence = SimpleSentence(
-                TestNamedEntity(1, Noun("girl"), THIRD_PERSON_SINGULAR_FEMININE),
+                girl,
                 VerbMultipleObjects(
                         Verb("eats", "eat"),
-                        listOf(
-                                TestNamedEntity(2, Noun("steak"), THIRD_PERSON_SINGULAR_NEUTER),
-                                TestNamedEntity(3, Noun("potato"), THIRD_PERSON_SINGULAR_NEUTER)
-                        )
+                        listOf(steak, potato)
                 )
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT both objects to be listed after the verb
-        assertThat(string, equalTo("A girl eats a steak and a potato."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("girl")), girl),
+                TextElement("eats"),
+                NameElement(Indefinite(Noun("steak")), steak),
+                TextElement("and"),
+                NameElement(Indefinite(Noun("potato")), potato),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
     fun realize_verbWithThreeObjects() {
         // GIVEN a sentence with a verb and three direct objects
+        val girl = TestNamedEntity(1, Noun("girl"), THIRD_PERSON_SINGULAR_FEMININE)
+        val steak = TestNamedEntity(2, Noun("steak"), THIRD_PERSON_SINGULAR_NEUTER)
+        val potato = TestNamedEntity(3, Noun("potato"), THIRD_PERSON_SINGULAR_NEUTER)
+        val salad = TestNamedEntity(4, Noun("salad"), THIRD_PERSON_SINGULAR_NEUTER)
+
         val sentence = SimpleSentence(
-                TestNamedEntity(1, Noun("girl"), THIRD_PERSON_SINGULAR_FEMININE),
+                girl,
                 VerbMultipleObjects(
                         Verb("eats", "eat"),
-                        listOf(
-                                TestNamedEntity(2, Noun("steak"), THIRD_PERSON_SINGULAR_NEUTER),
-                                TestNamedEntity(3, Noun("potato"), THIRD_PERSON_SINGULAR_NEUTER),
-                                TestNamedEntity(4, Noun("salad"), THIRD_PERSON_SINGULAR_NEUTER)
-                        )
+                        listOf(steak, potato, salad)
                 )
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT all three objects to be listed after the verb
-        assertThat(string, equalTo("A girl eats a steak, a potato, and a salad."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("girl")), girl),
+                TextElement("eats"),
+                NameElement(Indefinite(Noun("steak")), steak),
+                PunctuationElement(","),
+                NameElement(Indefinite(Noun("potato")), potato),
+                PunctuationElement(","),
+                TextElement("and"),
+                NameElement(Indefinite(Noun("salad")), salad),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -369,10 +474,19 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT bone to be referred to by its pronoun the second time
-        assertThat(string, equalTo("A dog finds a bone and eats it."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("dog")), dog),
+                TextElement("finds"),
+                NameElement(Indefinite(Noun("bone")), bone),
+                PunctuationElement(","),
+                TextElement("and"),
+                TextElement("eats"),
+                NameElement(Pronoun("it"), bone),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -391,10 +505,15 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the possessive determiner NOT to be used with the owned entity
-        assertThat(string, equalTo("A dog eats a bone."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("dog")), dog),
+                TextElement("eats"),
+                NameElement(Indefinite(Noun("bone")), bone),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -414,10 +533,15 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the possessive determiner to be used with the owned entity
-        assertThat(string, equalTo("A dog eats his bone."))
+        assertThat(elements, contains(
+                NameElement(Indefinite(Noun("dog")), dog),
+                TextElement("eats"),
+                NameElement(Adjective("his", Noun("bone")), bone),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -439,10 +563,19 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the possessive determiner to be used first, followed by the pronoun
-        assertThat(string, equalTo("The dog finds his bone and eats it."))
+        assertThat(elements, contains(
+                NameElement(Definite(Noun("dog")), dog),
+                TextElement("finds"),
+                NameElement(Adjective("his", Noun("bone")), bone),
+                PunctuationElement(","),
+                TextElement("and"),
+                TextElement("eats"),
+                NameElement(Pronoun("it"), bone),
+                PunctuationElement(".")
+        ))
     }
 
     @Test
@@ -466,10 +599,17 @@ class SentenceRealizerTest {
         )
 
         // WHEN realizing the sentence
-        val string = sentenceRealizer.realize(sentence)
+        val elements = sentenceRealizer.realize(sentence)
 
         // EXPECT the possessive determiner to be used within the prepositional phrase
-        assertThat(string, equalTo("The cat swats a dog with her paw."))
+        assertThat(elements, contains(
+                NameElement(Definite(Noun("cat")), cat),
+                TextElement("swats"),
+                NameElement(Indefinite(Noun("dog")), dog),
+                TextElement("with"),
+                NameElement(Adjective("her", Noun("paw")), paw),
+                PunctuationElement(".")
+        ))
     }
 
 }

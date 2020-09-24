@@ -2,7 +2,7 @@ package com.textgame.engine.model.nounphrase
 
 import com.textgame.engine.WordUtil
 
-class Pronoun(val value: String): NounPhrase {
+data class Pronoun(val value: String): NounPhrase {
 
     override fun definite(): NounPhrase =
             this

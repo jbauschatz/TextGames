@@ -2,7 +2,7 @@ package com.textgame.engine.model.nounphrase
 
 import com.textgame.engine.WordUtil
 
-class Adjective(
+data class Adjective(
         val value: String,
         val stem: NounPhrase,
         private val startsWithVowelSound: Boolean
