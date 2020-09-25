@@ -23,6 +23,11 @@ fun <T> pick(options: List<T>): T =
  * Executes the given function only if a random number is less than [percent]
  */
 fun ifPercent(percent: Int, function: () -> Unit) {
-    if (Math.random() * 100 < percent)
+    if (isPercent(percent))
         function()
 }
+
+/**
+ * Returns whether a random number is less than [percent]
+ */
+fun isPercent(percent: Int) = Math.random() * 100 < percent

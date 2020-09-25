@@ -234,6 +234,8 @@ class PlayerController(
 
         if (event.isLethal)
             narrate(SimpleSentence(event.attacker, VerbPredicate(Verb("kills", "kill"), event.defender)))
+        else if (!event.hits)
+            narrate(SimpleSentence(event.attacker, VerbPredicate(Verb("misses", "miss"))))
     }
 
     private fun describeLocation(location: LocationView) {

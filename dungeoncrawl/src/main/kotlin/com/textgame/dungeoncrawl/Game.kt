@@ -315,9 +315,12 @@ class Game {
 
         attack.attacker.spendAction(ActionType.ATTACK)
 
+        val hits: Boolean = isPercent(75)
+
         // Resolve damage
-        val damageDealt = 10
-        defender.takeDamage(damageDealt)
+        val damageDealt = if (hits) 10 else 0
+
+        if (hits) defender.takeDamage(damageDealt)
         val lethal = defender.isDead()
 
         if (lethal) {
@@ -328,7 +331,7 @@ class Game {
         // Dispatch Attack event
         val weaponView = if (attack.weapon != null) { ItemView(attack.weapon) } else { null }
         dispatchEvent(
-                AttackEvent(CreatureView(attack.attacker), CreatureView(attack.defender), lethal, weaponView),
+                AttackEvent(CreatureView(attack.attacker), CreatureView(attack.defender), hits, lethal, weaponView),
                 attack.attacker.location
         )
     }
