@@ -206,10 +206,11 @@ class PlayerController(
 
     private fun handleAttack(event: AttackEvent) {
         if (event.weapon != null) {
-            val attackVerb = pick(event.weapon.attackVerbs)
-
             // Armed attack
-            narrate(SimpleSentence(event.attacker, VerbPredicate(attackVerb, event.defender, PrepositionalPhrase("with", event.weapon))))
+            val weapon = event.weapon
+            val attackSentenceSupplier = if (event.hits) pick(weapon.attackSentenceSupplier)
+                else pick (weapon.attackMissSentenceSupplier)
+            narrate(attackSentenceSupplier(event.attacker, event.defender, event.weapon))
         } else {
             // Unarmed attack
             narrate(SimpleSentence(event.attacker, VerbPredicate(ATTACK, event.defender)))
@@ -218,7 +219,10 @@ class PlayerController(
         if (event.isLethal)
             narrate(SimpleSentence(event.attacker, VerbPredicate(KILL, event.defender)))
         else if (!event.hits)
-            narrate(SimpleSentence(event.attacker, VerbPredicate(MISS)))
+            pick(
+                    { narrate(SimpleSentence(event.attacker, VerbPredicate(MISS))) },
+                    { narrate(SimpleSentence(event.defender, VerbPredicate(EVADE))) }
+            )
     }
 
     private fun describeLocation(location: LocationView) {

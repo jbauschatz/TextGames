@@ -52,7 +52,7 @@ class MapGenerator {
                             THIRD_PERSON_SINGULAR_NEUTER,
                             20,
                             it,
-                            listOf(Weapon(nextId(), Adjective("bone", Noun("shiv")), listOf(ATTACK, STAB, SLASH)))
+                            listOf(evilWeapon())
                     )
                 }
 
@@ -187,11 +187,41 @@ class MapGenerator {
 
         fun humanWeapon(): Weapon =
                 pick(
-                        { Weapon(nextId(), Adjective("war", Noun("axe")), listOf(ATTACK, HEW)) },
-                        { Weapon(nextId(), Noun("warhammer"), listOf(ATTACK, BLUDGEON)) },
-                        { Weapon(nextId(), Adjective("iron", Noun("sword")), listOf(ATTACK, SLASH, STAB)) },
-                        { Weapon(nextId(), Adjective("hunting", Noun("bow")), listOf(ATTACK)) }
+                        {
+                            Weapon(nextId(), Adjective("war", Noun("axe")),
+                                listOf(SLASH_WITH_WEAPON, HEW_WITH_WEAPON, HACK_WITH_WEAPON, STRIKE_WITH_WEAPON),
+                                listOf(SWING_WEAPON_AT)
+                            )
+                        },
+                        {
+                            Weapon(nextId(), Noun("warhammer"),
+                                listOf(HACK_WITH_WEAPON, BLUDGEON_WITH_WEAPON, SMASH_WITH_WEAPON, STRIKE_WITH_WEAPON),
+                                listOf(SWING_WEAPON_AT)
+                            )
+                        },
+                        {
+                            Weapon(nextId(), Adjective("iron", Noun("sword")),
+                                    listOf(SLASH_WITH_WEAPON, STAB_WITH_WEAPON, CUT_WITH_WEAPON, STRIKE_WITH_WEAPON),
+                                    listOf(THRUST_WEAPON_AT, SWING_WEAPON_AT)
+                            )
+                        },
+                        {
+                            Weapon(nextId(), Adjective("hunting", Noun("bow")),
+                                    listOf(SHOOT_WITH_WEAPON),
+                                    listOf(FIRE_WEAPON_AT)
+                            )
+                        }
                 )
+
+        fun evilWeapon(): Weapon =
+            pick(
+                    {
+                        Weapon(nextId(), Adjective("bone", Noun("shiv")),
+                                listOf(SLASH_WITH_WEAPON, STAB_WITH_WEAPON, CUT_WITH_WEAPON, STRIKE_WITH_WEAPON),
+                                listOf(THRUST_WEAPON_AT)
+                        )
+                    }
+            )
 
         fun potionItem() =
                 Consumable(
