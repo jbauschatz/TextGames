@@ -2,6 +2,7 @@ package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.GameCommand
 import com.textgame.dungeoncrawl.command.WaitCommand
+import com.textgame.dungeoncrawl.english.*
 import com.textgame.dungeoncrawl.event.*
 import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
@@ -19,24 +20,13 @@ import com.textgame.engine.model.NamedEntity
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Definite
 import com.textgame.engine.model.nounphrase.Pronouns.Companion.THIRD_PERSON_SINGULAR_NEUTER
-import com.textgame.engine.model.nounphrase.ProperNoun
 import com.textgame.engine.model.predicate.VerbPredicate
 import com.textgame.engine.model.preposition.PrepositionalPhrase
 import com.textgame.engine.model.sentence.SimpleSentence
-import com.textgame.engine.model.verb.Verb
 import com.textgame.engine.narrator.NarrativeContext
 import com.textgame.engine.narrator.Narrator
 import com.textgame.engine.narrator.SentenceRealizer
 import hasActionAvailable
-
-private val SEE = Verb("sees", "see")
-
-private val IS = Verb("is", "are")
-
-/**
- * Entity to be used when narrating "there is" sentences.
- */
-private val THERE = NamedEntity(nextId(), ProperNoun("there"), null)
 
 /**
  * Class which allows a user to control a [Creature] designated as the Player, and to receive narration about events
@@ -108,8 +98,8 @@ class PlayerController(
             is MoveEvent -> handleMove(event)
             is TakeItemEvent -> handleTakeItem(event)
             is WaitEvent -> handleWait()
-            is EquipItemEvent -> handleEquipItem(event)
-            is UnequipItemEvent -> handleUnequipItem(event)
+            is EquipWeaponEvent -> handleEquipWeapon(event)
+            is UnequipWeaponEvent -> handleUnequipWeapon(event)
             is HealingItemEvent -> handleHealingItem(event)
             is AttackEvent -> handleAttack(event)
             else -> throw IllegalArgumentException("Invalid GameEvent type: ${event.javaClass}")
@@ -166,16 +156,13 @@ class PlayerController(
 
     private fun handleMove(event: MoveEvent) {
         if (sameEntity(player, event.actor)) {
-            val go = Verb("goes", "go")
-            narrate(SimpleSentence(player, VerbPredicate(go, event.direction)))
+            narrate(SimpleSentence(player, VerbPredicate(GO, event.direction)))
             describeLocation(event.toLocation)
         } else if (sameEntity(event.fromLocation, player.location)) {
             // An entity left the Player's location
-            val exit = Verb("exits", "exit")
-            narrate(SimpleSentence(event.actor, VerbPredicate(exit, event.direction)))
+            narrate(SimpleSentence(event.actor, VerbPredicate(EXIT, event.direction)))
         } else if (sameEntity(event.toLocation, player.location)) {
             // An entity entered the Player's location
-            val enter = Verb("enters", "enter")
             val properCardinalDirection = NamedEntity(
                     nextId(),
                     Definite(opposite(event.direction).name, true),
@@ -186,13 +173,11 @@ class PlayerController(
                     PrepositionalPhrase("from", properCardinalDirection),
                     PrepositionalPhrase("through", event.toDoor)
             )
-            narrate(SimpleSentence(event.actor, VerbPredicate(enter, prepositionalPhrase = prep)))
+            narrate(SimpleSentence(event.actor, VerbPredicate(ENTER, prepositionalPhrase = prep)))
         }
     }
 
     private fun handleTakeItem(event: TakeItemEvent) {
-        val take = Verb("takes", "take")
-
         /* Since the item has already changed possession, make a copy of it with no owner
            to make the narration more clear */
         val item = ItemView(
@@ -201,20 +186,18 @@ class PlayerController(
                 event.item.pronouns
         )
 
-        narrate(SimpleSentence(event.actor, VerbPredicate(take, item)))
+        narrate(SimpleSentence(event.actor, VerbPredicate(TAKE, item)))
     }
 
     private fun handleWait() {
     }
 
-    private fun handleEquipItem(event: EquipItemEvent) {
-        val equip = Verb("draws", "draw")
-        narrate(SimpleSentence(event.actor, VerbPredicate(equip, event.item)))
+    private fun handleEquipWeapon(event: EquipWeaponEvent) {
+        narrate(SimpleSentence(event.actor, VerbPredicate(DRAW, event.weapon)))
     }
 
-    private fun handleUnequipItem(event: UnequipItemEvent) {
-        val unequip = Verb("sheathes", "sheathe")
-        narrate(SimpleSentence(event.actor, VerbPredicate(unequip, event.item)))
+    private fun handleUnequipWeapon(event: UnequipWeaponEvent) {
+        narrate(SimpleSentence(event.actor, VerbPredicate(SHEATHE, event.weapon)))
     }
 
     private fun handleHealingItem(event: HealingItemEvent) {
@@ -222,20 +205,20 @@ class PlayerController(
     }
 
     private fun handleAttack(event: AttackEvent) {
-        val verb = Verb("attacks", "attack")
-
         if (event.weapon != null) {
+            val attackVerb = pick(event.weapon.attackVerbs)
+
             // Armed attack
-            narrate(SimpleSentence(event.attacker, VerbPredicate(verb, event.defender, PrepositionalPhrase("with", event.weapon))))
+            narrate(SimpleSentence(event.attacker, VerbPredicate(attackVerb, event.defender, PrepositionalPhrase("with", event.weapon))))
         } else {
             // Unarmed attack
-            narrate(SimpleSentence(event.attacker, VerbPredicate(verb, event.defender)))
+            narrate(SimpleSentence(event.attacker, VerbPredicate(ATTACK, event.defender)))
         }
 
         if (event.isLethal)
-            narrate(SimpleSentence(event.attacker, VerbPredicate(Verb("kills", "kill"), event.defender)))
+            narrate(SimpleSentence(event.attacker, VerbPredicate(KILL, event.defender)))
         else if (!event.hits)
-            narrate(SimpleSentence(event.attacker, VerbPredicate(Verb("misses", "miss"))))
+            narrate(SimpleSentence(event.attacker, VerbPredicate(MISS)))
     }
 
     private fun describeLocation(location: LocationView) {
@@ -279,10 +262,9 @@ class PlayerController(
         flushNarration()
 
         // List exits
-        val leads = Verb("leads", "lead")
         location.doors.forEach {
             narrativeContext.removeKnownEntity(it)
-            narrate(SimpleSentence(it, VerbPredicate(leads, it.direction)))
+            narrate(SimpleSentence(it, VerbPredicate(LEADS, it.direction)))
         }
     }
 
@@ -293,7 +275,7 @@ class PlayerController(
 
         narrate(SimpleSentence(player, VerbPredicate(SEE, creature)))
         if (creature.weapon != null)
-            narrate(SimpleSentence(creature, VerbPredicate(Verb("wields", "wield"), creature.weapon)))
+            narrate(SimpleSentence(creature, VerbPredicate(WIELD, creature.weapon)))
     }
 
     /**

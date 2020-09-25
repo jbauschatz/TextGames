@@ -12,12 +12,12 @@ class CreatureView(
         id: Int,
         name: NounPhrase,
         pronouns: Pronouns?,
-        val weapon: ItemView?
+        val weapon: WeaponView?
 ): NamedEntity(id, name, pronouns) {
     constructor(creature: Creature): this(
             creature.id,
             creature.name,
             creature.pronouns,
-            if (creature.weapon != null) ItemView(creature.weapon!!) else null
+            if (creature.weapon != null) WeaponView(creature.weapon!!) else null
     )
 }

@@ -17,11 +17,11 @@ class CommandFormatter {
         fun format(command: GameCommand): String =
                 when (command) {
                     is AttackCommand -> "attack ${DefaultNounPhraseFormatter.format(command.defender.name)}"
-                    is UnequipItemCommand -> "unequip ${DefaultNounPhraseFormatter.format(command.item.name)}"
+                    is UnequipWeaponCommand -> "unequip ${DefaultNounPhraseFormatter.format(command.weapon.name)}"
                     is UseItemCommand -> "use ${DefaultNounPhraseFormatter.format(command.item.name)}"
                     is MoveCommand -> "go ${DefaultNounPhraseFormatter.format(command.direction.name)}"
                     is LookCommand -> "look"
-                    is EquipItemCommand -> "equip ${DefaultNounPhraseFormatter.format(command.item.name)}"
+                    is EquipWeaponCommand -> "equip ${DefaultNounPhraseFormatter.format(command.weapon.name)}"
                     is TakeItemCommand -> "take ${DefaultNounPhraseFormatter.format(command.item.name)}"
                     is WaitCommand -> "wait"
                     else -> "help"

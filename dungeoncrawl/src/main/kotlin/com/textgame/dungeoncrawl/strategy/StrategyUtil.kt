@@ -45,7 +45,7 @@ object EquipWeaponIfThreatened: CreatureStrategy {
         // Pick an arbitrary item to equip
         creature.inventory.members.forEach {
             if (it is Weapon)
-                return EquipItemCommand(creature, it)
+                return EquipWeaponCommand(creature, it)
         }
 
         return null
@@ -109,7 +109,7 @@ object UnequipWeaponIfSafe: CreatureStrategy {
         if (creature.weapon == null)
             return null
 
-        return UnequipItemCommand(creature, creature.weapon!!)
+        return UnequipWeaponCommand(creature, creature.weapon!!)
     }
 
 }

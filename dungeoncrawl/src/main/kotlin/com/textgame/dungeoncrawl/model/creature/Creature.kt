@@ -2,6 +2,7 @@ package com.textgame.dungeoncrawl.model.creature
 
 import com.textgame.dungeoncrawl.model.Inventory
 import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.engine.model.NamedEntity
@@ -22,9 +23,9 @@ class Creature(
     val allyGroups: MutableSet<String> = mutableSetOf()
 
     /**
-     * [Item] currently equipped as a primary weapon
+     * [Weapon] currently equipped as a primary weapon
      */
-    var weapon: Item? = null
+    var weapon: Weapon? = null
 
     /**
      * [ActionType]s that can still be spent on this turn

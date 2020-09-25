@@ -1,9 +1,9 @@
 package com.textgame.dungeoncrawl.event
 
 import com.textgame.dungeoncrawl.model.creature.Creature
-import com.textgame.dungeoncrawl.model.item.Item
+import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.view.CreatureView
-import com.textgame.dungeoncrawl.view.ItemView
+import com.textgame.dungeoncrawl.view.WeaponView
 
 /**
  * [GameEvent] indicating one [Creature] attacked another.
@@ -31,9 +31,9 @@ class AttackEvent(
         val isLethal: Boolean,
 
         /**
-         * [Item] used to attack with
+         * [Weapon] used to attack with
          *
          * If null, indicates an unarmed attack
          */
-        val weapon: ItemView?
+        val weapon: WeaponView?
 ): GameEvent

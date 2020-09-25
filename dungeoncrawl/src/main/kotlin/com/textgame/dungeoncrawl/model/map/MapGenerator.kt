@@ -1,5 +1,6 @@
 package com.textgame.dungeoncrawl.model.map
 
+import com.textgame.dungeoncrawl.english.*
 import com.textgame.dungeoncrawl.ifPercent
 import com.textgame.dungeoncrawl.model.Container
 import com.textgame.dungeoncrawl.model.creature.Creature
@@ -34,10 +35,10 @@ class MapGenerator {
 
             // Generate random "encounters" and loot for each room
             map.locations.forEach {
-                ifPercent(25) {
+                ifPercent(50) {
                     generateBandit(it)
                 }
-                ifPercent(25) {
+                ifPercent(33) {
                     generateMonster(
                             Noun("skeever"),
                             THIRD_PERSON_SINGULAR_NEUTER,
@@ -45,13 +46,13 @@ class MapGenerator {
                             it
                     )
                 }
-                ifPercent(25) {
+                ifPercent(50) {
                     generateMonster(
                             Noun("skeleton"),
                             THIRD_PERSON_SINGULAR_NEUTER,
                             20,
                             it,
-                            listOf(Weapon(nextId(), Adjective("bone", Noun("shiv"))))
+                            listOf(Weapon(nextId(), Adjective("bone", Noun("shiv")), listOf(ATTACK, STAB, SLASH)))
                     )
                 }
 
@@ -60,7 +61,7 @@ class MapGenerator {
                     it.inventory.add(Treasure(nextId(), Adjective("gold", Noun("coin"))))
                 }
 
-                ifPercent(50) {
+                ifPercent(75) {
                     generateFurniture(it)
                 }
             }
@@ -175,7 +176,7 @@ class MapGenerator {
                         ifPercent(10) {
                             table.getSlot("on")!!.add(treasure())
                         }
-                        ifPercent(10) {
+                        ifPercent(25) {
                             table.getSlot("under")!!.add(treasure())
                         }
 
@@ -184,12 +185,12 @@ class MapGenerator {
             )
         }
 
-        fun humanWeapon(): Item =
+        fun humanWeapon(): Weapon =
                 pick(
-                        { Weapon(nextId(), Adjective("war", Noun("axe"))) },
-                        { Weapon(nextId(), Noun("warhammer")) },
-                        { Weapon(nextId(), Adjective("iron", Noun("sword"))) },
-                        { Weapon(nextId(), Adjective("hunting", Noun("bow"))) }
+                        { Weapon(nextId(), Adjective("war", Noun("axe")), listOf(ATTACK, HEW)) },
+                        { Weapon(nextId(), Noun("warhammer"), listOf(ATTACK, BLUDGEON)) },
+                        { Weapon(nextId(), Adjective("iron", Noun("sword")), listOf(ATTACK, SLASH, STAB)) },
+                        { Weapon(nextId(), Adjective("hunting", Noun("bow")), listOf(ATTACK)) }
                 )
 
         fun potionItem() =

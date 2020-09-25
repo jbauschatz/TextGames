@@ -8,7 +8,6 @@ import com.textgame.dungeoncrawl.model.creature.ActionType
 import com.textgame.dungeoncrawl.model.creature.Creature
 import com.textgame.dungeoncrawl.model.item.Consumable
 import com.textgame.dungeoncrawl.model.item.Item
-import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.model.map.Location
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.generateMap
 import com.textgame.dungeoncrawl.model.map.MapGenerator.Companion.humanWeapon
@@ -22,6 +21,7 @@ import com.textgame.dungeoncrawl.strategy.companionStrategy
 import com.textgame.dungeoncrawl.view.CreatureView
 import com.textgame.dungeoncrawl.view.ItemView
 import com.textgame.dungeoncrawl.view.LocationView
+import com.textgame.dungeoncrawl.view.WeaponView
 import com.textgame.engine.model.NamedEntity.Companion.nextId
 import com.textgame.engine.model.nounphrase.Adjective
 import com.textgame.engine.model.nounphrase.Noun
@@ -63,9 +63,9 @@ class Game {
         val player = Creature(nextId(), ProperNoun("Player"), Pronouns.SECOND_PERSON_SINGULAR, 100, map.playerStartingLocation, IdleStrategy)
         player.allyGroups.add("PLAYER")
         player.addItem(Item(nextId(), Adjective("small", Noun("key"))))
-        player.addItem(Item(nextId(), Adjective("rusty", Noun("dagger"))))
+        player.addItem(humanWeapon())
 
-        val playerWeapon = Weapon(nextId(), Adjective("iron", Adjective("short", Noun("sword"))))
+        val playerWeapon = humanWeapon()
         player.weapon = playerWeapon
         playerWeapon.addOwner(player)
 
@@ -157,8 +157,8 @@ class Game {
             is TakeItemCommand -> execute(command)
             is LookCommand -> execute(command)
             is WaitCommand -> execute(command)
-            is EquipItemCommand -> execute(command)
-            is UnequipItemCommand -> execute(command)
+            is EquipWeaponCommand -> execute(command)
+            is UnequipWeaponCommand -> execute(command)
             is UseItemCommand -> execute(command)
             is AttackCommand -> execute(command)
             else -> throw IllegalArgumentException("Cannot execute command: " + command.javaClass)
@@ -259,33 +259,33 @@ class Game {
     }
 
     /**
-     * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Creature.inventory] to its [Creature.weapon] slot
+     * Executes an [EquipWeaponCommand] by transferring the [Item] from the [Creature]'s [Creature.inventory] to its [Creature.weapon] slot
      *
-     * Dispatches an [EquipItemEvent] representing the change in state
+     * Dispatches an [EquipWeaponEvent] representing the change in state
      */
-    private fun execute(equip: EquipItemCommand) {
+    private fun execute(equip: EquipWeaponCommand) {
         // TODO if the Creature already has an item equipped, how should this be handled?
 
-        equip.actor.inventory.remove(equip.item)
-        equip.actor.weapon = equip.item
+        equip.actor.inventory.remove(equip.weapon)
+        equip.actor.weapon = equip.weapon
 
         dispatchEvent(
-                EquipItemEvent(equip.actor, equip.item),
+                EquipWeaponEvent(equip.actor, equip.weapon),
                 equip.actor.location
         )
     }
 
     /**
-     * Executes an [EquipItemCommand] by transferring the [Item] from the [Creature]'s [Creature.weapon] slot to its [Creature.inventory]
+     * Executes an [EquipWeaponCommand] by transferring the [Item] from the [Creature]'s [Creature.weapon] slot to its [Creature.inventory]
      *
-     * Dispatches an [UnequipItemEvent] representing the change in state
+     * Dispatches an [UnequipWeaponEvent] representing the change in state
      */
-    private fun execute(unequip: UnequipItemCommand) {
+    private fun execute(unequip: UnequipWeaponCommand) {
         unequip.actor.weapon = null
-        unequip.actor.inventory.add(unequip.item)
+        unequip.actor.inventory.add(unequip.weapon)
 
         dispatchEvent(
-                UnequipItemEvent(unequip.actor, unequip.item),
+                UnequipWeaponEvent(unequip.actor, unequip.weapon),
                 unequip.actor.location
         )
     }
@@ -329,7 +329,7 @@ class Game {
         }
 
         // Dispatch Attack event
-        val weaponView = if (attack.weapon != null) { ItemView(attack.weapon) } else { null }
+        val weaponView = if (attack.weapon != null) { WeaponView(attack.weapon) } else { null }
         dispatchEvent(
                 AttackEvent(CreatureView(attack.attacker), CreatureView(attack.defender), hits, lethal, weaponView),
                 attack.attacker.location

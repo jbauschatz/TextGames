@@ -2,6 +2,7 @@ package com.textgame.dungeoncrawl
 
 import com.textgame.dungeoncrawl.command.*
 import com.textgame.dungeoncrawl.model.creature.Creature
+import com.textgame.dungeoncrawl.model.item.Weapon
 import com.textgame.dungeoncrawl.output.CommandFormatter
 import com.textgame.dungeoncrawl.strategy.CreatureStrategy
 import com.textgame.engine.format.DefaultNounPhraseFormatter
@@ -42,7 +43,7 @@ object CommandParser: CreatureStrategy {
      */
     override fun act(creature: Creature): GameCommand {
         while (true) {
-            System.out.print("> ")
+            out.print("> ")
             val input = scanner.nextLine()
 
             if (input.isNotEmpty()) {
@@ -118,7 +119,7 @@ object CommandParser: CreatureStrategy {
         }
     }
 
-    private fun parseEquipItem(creature: Creature, words: List<String>): EquipItemCommand? {
+    private fun parseEquipItem(creature: Creature, words: List<String>): EquipWeaponCommand? {
         if (words.size == 1) {
             narrate("Specify the name of an item you carry to equip.")
         }
@@ -130,11 +131,17 @@ object CommandParser: CreatureStrategy {
             narrate("You don't carry anything by that name.")
             return null
         }
-        return if (itemsByName.size > 1) {
+        if (itemsByName.size > 1) {
             narrate("You carry multiple items by that name. Try being more specific.")
-            null
+            return null
         } else {
-            EquipItemCommand(creature, itemsByName[0])
+            val item = itemsByName[0]
+            if (item !is Weapon) {
+                narrate("You can only equip weapons.")
+                return null
+            }
+
+            return EquipWeaponCommand(creature, item)
         }
     }
 

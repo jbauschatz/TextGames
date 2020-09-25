@@ -59,6 +59,7 @@ object ConsoleNounPhraseFormatter : NounPhraseFormatter {
 
         val format = when(entity) {
             is CreatureView -> AnsiFormat(RED_TEXT())
+            is WeaponView -> AnsiFormat(BRIGHT_RED_TEXT())
             is ItemView -> AnsiFormat(YELLOW_TEXT())
             is DoorView -> AnsiFormat(CYAN_TEXT())
             is LocationView -> AnsiFormat(CYAN_TEXT())
