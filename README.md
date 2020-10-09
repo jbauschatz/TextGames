@@ -14,49 +14,72 @@ To generate a session of ai-driven gameplay, run:
 ./gradlew aiPlay
 ```
 
-# Project Goals
+# Overview of the Narration Process
+This is a bottom-up process of narrating gameplay. It starts with the smallest building blocks, discrete events that happen within the game. These become sentences, which are formed into more complicated sentences, and eventually coherent paragraphs of storytelling.
 
-The framework includes datastructure to represent English sentences, as well as a system for transforming game events into basic sentences. The engine's embedded grammatical rules act on these simple sentences to create a more complicated narrative, ideally with complex emergent behavior.
-
-### Complex sentences
-Many text-based games narrate individual events in a rapid-fire fashion. Example:
-
+#### 1. Generate Game Events
+The game engine processes the turn-based gameplay, and produces discrete events that describe all the state changes that occur.
 ```
-You go north. You see a skeleton. The skeleton draws a knife. The skeleton attacks you.
+[
+    MoveEvent(lydia, room1),
+    EquipItemEvent(lydia, axe),
+    AttackEvent(lydia, bandit, lethal=true)
+]
+```
+#### 2. Convert Events to Sentences
+Each Event gets directly converted to a SimpleSentence. These sentences are just an abstract sentence tree (AST), so names and punctuation haven't been determined yet.
+```kotlin
+[
+    SimpleSentence(lydia, VerbPredicate(Verb("enters"), Preposition("from the north"))),
+    SimpleSentence(lydia, VerbPredicate(Verb("draws", axe))),
+    SimpleSentence(lydia, VerbPredicate(Verb("attacks"), bandit, Preposition("with", axe))),
+    SimpleSentence(lydia, VerbPredicate(Verb("kills"), bandit))
+]
+```
+#### 3. Transform Sentences
+These sentences are valid English, but they aren't interesting or well written as is. Adjacent sentences that are grammatically compatible can be combined to form fewer, more complicated sentences.
+```kotlin
+[
+    SimpleSentence(lydia, Predicates([
+            VerbPredicate(Verb("enters"), Preposition("from the north")),
+            VerbPredicate(Verb("draws", axe))
+    ])),
+    SimpleSentence(lydia, Predicates([
+            VerbPredicate(Verb("attacks"), bandit, Preposition("with", axe)),
+            VerbPredicate(Verb("kills"), bandit)
+    ]))
+]
 ```
 
-These sentences are simple, consisting only of Subject/Verb/Object, and are not engaging to read. These sentences can be programmatically combined into larger sentences by following some basic grammar rules. Example:
+#### 4. Realize Sentences
+Realization is the process of converting this AST into the final readable form. This is the most difficult part, as it requires being meticulous about pronouns and names to avoid ambiguity.
 ```
-You go north, and see a skeleton. The skeleton draws its knife and attacks you.
+[
+    "Lydia enters from the north and draws her axe.",
+    "She attacks the bandit with her axe and kills him."
+]
 ```
-By applying a few simple grammar rules, we can produce narration which seems more hand-written than the typical punchy sequence of short sentences.
-
-### Definite vs Indefinite Articles
+# Sentence Realization
+#### Definite vs Indefinite Articles
 English uses definite articles for nouns that are unique or unambigious given the context. For example "the tree" refers to some specific tree which the reader can infer. "A tree" refers to a tree that was not previously specified.
 
 **Bad narration:**
 ```
-You see a skeleton.
-
-A skeleton attacks you.
+You see a skeleton. A skeleton attacks you.
 ```
-The above narration reads awkwardly because when "a skeleton" attacks you, it's not precisely indicated that it's the same skeleton you just saw.
+The above reads awkwardly because when "a skeleton" attacks you, it's not clear that it's the same skeleton you just saw.
 
 **Good narration:**
 ```
-You see a skeleton.
-
-The skeleton attacks you.
+You see a skeleton. The skeleton attacks you.
 ```
-This narration makes sense, because the skeleton is first introduced as "a skeleton" but subsequently referred to as "the skeleton".
+This version makes more sense, because the second time it refers to the skeleton it's already a familiar entity. This is a small touch that really improves the tone of narration.
 
-### Pronouns
-Pronouns are a shorthand way to refer to known entities. They can only be used when their meaning is unambiguous, so they must be avoided unless circumstances are correct.
+#### Pronouns
+Pronouns might be the trickiest thing to get right. If pronouns aren't used carefully, a "Who's on First" scenario is pretty likely.
 
 ```
-You see a skeleton.
-
-It attacks you.
+You see a skeleton. It attacks you.
 ```
 
 In this simple example, "it" can only refer to the skeleton and so the skeleton should be referenced by this pronoun.
@@ -66,8 +89,10 @@ You see a robed cultist. He draws his kife and attacks you with it.
 ```
 This example is more complex because both "he" and "it" are used. The usage of both is clear, because "he" must refer to the cultist while "it" refers to his knife.
 
-### Pragmatic Naming
-Any given object can be reffered to by many names, each of which may be unique or not given the present context. A game should describe objects, and interpret user commands, based on which names are unambiguous.
+#### Pragmatic Naming
+Both of the above issues relate to naming things, and ultimately it's a problem of referring to entities in the most concise and unambiguous way, while still feeling like natural English.
+
+An object named "ancient golden sword" could also be referred to as "ancient sword", "golden sword", or just "sword". Any of these may or may not be ambiguous, and the game should generally try to use the shortest unambiguous name in order to sound natural.
 
 ```
 You see a rusty sword and an ancient golden sword.
