@@ -57,34 +57,58 @@ class Narrator(
         return returnParagraphs
     }
 
+    /**
+     * Transform the [SimpleSentence]s into more complex using the configured [SentenceTransformer]s.
+     *
+     * This works through the sentences left-to-right, finding the longest possible chain that can be transformed.
+     *
+     * It is "greedy" in the sense that it will always pick the left-most chain of sentences that can be transformed,
+     * so it's not always guaranteed to transform the most sentences possible.
+     */
     private fun transform(sentences: MutableList<SimpleSentence>): List<Sentence> {
         val transformedSentences = mutableListOf<Sentence>()
 
-        // Attempt to transform each adjacent pair of sentences, using a greedy approach
-        while(sentences.size > 1) {
+        while (sentences.size > 1) {
             val firstSentence = sentences.removeAt(0)
-            val nextSentence = sentences[0]
+            var longestTransformation: Transformation? = null
 
-            var didTransform = false
+            // Build up a chain of sentences starting with this one
+            val chainToTransform = mutableListOf(firstSentence)
+            for (sentence in sentences) {
+                chainToTransform += sentence
 
-            transformers.forEach {
-                if (!didTransform && it.canTransform(firstSentence, nextSentence)) {
-                    val transformed = it.transform(firstSentence, nextSentence)
-                    transformedSentences.add(transformed)
-                    sentences.removeAt(0)
-                    didTransform = true
+                // See if any Transformer can transform this chain
+                var hasTransformation = false
+                transformers.forEach {
+                    if (it.canTransform(*chainToTransform.toTypedArray())) {
+                        longestTransformation = Transformation(chainToTransform.toList(), it)
+                        hasTransformation = true
+                    }
                 }
+                if (!hasTransformation)
+                    break
             }
 
-            if (!didTransform) {
-                // Add the first sentences, unaltered, to the processed list
-                transformedSentences.add(firstSentence)
+            if (longestTransformation != null) {
+                // If a transformation is available, remove those sentences and add the transformed version
+                longestTransformation!!.chain.forEach { sentences.remove(it) }
+                val transformedSentence = longestTransformation!!.transformer.transform(*(longestTransformation!!.chain.toTypedArray()))
+                transformedSentences += transformedSentence
+            } else {
+                // Add the sentence, unaltered, to the processed list
+                transformedSentences += firstSentence
             }
         }
 
+        // Add any remaining, untransformed sentences
         if (sentences.isNotEmpty())
             transformedSentences.addAll(sentences)
 
         return transformedSentences
     }
+
+    private data class Transformation(
+            val chain: List<SimpleSentence>,
+            val transformer: SentenceTransformer
+    )
 }
